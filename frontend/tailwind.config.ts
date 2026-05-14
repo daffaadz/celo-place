@@ -2,15 +2,25 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        base: "var(--bg-base)",
+        surface: "var(--bg-surface)",
+        elevated: "var(--bg-elevated)",
+        "border-subtle": "var(--border-subtle)",
+        "border-default": "var(--border-default)",
+        "celo-yellow": "var(--celo-yellow)",
+        "celo-yellow-dim": "var(--celo-yellow-dim)",
+        "celo-green": "var(--celo-green)",
+        "celo-green-dim": "var(--celo-green-dim)",
+        "text-primary": "var(--text-primary)",
+        "text-secondary": "var(--text-secondary)",
+        "text-muted": "var(--text-muted)",
       },
     },
   },
