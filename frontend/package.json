@@ -9,13 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.100.10",
+    "@tanstack/react-query": "5.56.0",
     "leaflet": "^1.9.4",
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18",
-    "viem": "^2.49.0",
-    "wagmi": "^3.6.14"
+    "viem": "2.21.0",
+    "wagmi": "2.12.0"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.21",

@@ -3,7 +3,7 @@ import { defineChain } from 'viem';
 import { metaMask } from 'wagmi/connectors';
 
 export const celoSepolia = defineChain({
-  id: 44787,
+  id: 11142220,
   name: 'Celo Sepolia',
   nativeCurrency: {
     decimals: 18,
@@ -11,7 +11,7 @@ export const celoSepolia = defineChain({
     symbol: 'CELO',
   },
   rpcUrls: {
-    default: { http: ['https://alfajores-forno.celo-testnet.org'] },
+    default: { http: ['https://forno.celo-sepolia.celo-testnet.org'] },
   },
   blockExplorers: {
     default: { name: 'CeloScan', url: 'https://alfajores.celoscan.io' },
@@ -37,7 +37,12 @@ export const celoMainnet = defineChain({
 export const config = createConfig({
   chains: [celoSepolia, celoMainnet],
   connectors: [
-    metaMask(),
+    metaMask({
+      dappMetadata: {
+        name: 'Celo Place',
+        url: 'http://localhost:3000',
+      }
+    }),
   ],
   transports: {
     [celoSepolia.id]: http(),

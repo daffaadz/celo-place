@@ -1,4 +1,4 @@
 // Utility helpers
-export function cn(...inputs: any[]) {
+export function cn(...inputs: (string | undefined | null | false)[]) {
   return inputs.filter(Boolean).join(" ");
 }
