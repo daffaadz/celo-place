@@ -1,7 +1,7 @@
 {
-  "celoPlace": "",
-  "celoChat": "",
+  "celoPlace": "0x91462D8007c5F4C364a8f1d34DAfa1ea753F1940",
+  "celoChat": "0x4aD0f914d38fDA639C0aa98754c58A8121639C7f",
   "network": "celoSepolia",
-  "chainId": 44787,
-  "deployedAt": ""
+  "chainId": 11142220,
+  "deployedAt": "2026-05-14T15:36:04.412Z"
 }
