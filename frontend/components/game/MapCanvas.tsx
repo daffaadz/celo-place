@@ -155,7 +155,7 @@ export default function MapCanvas({ selectedColor, mapMode = "dark" }: MapCanvas
   };
 
   return (
-    <div className={w-full h-screen relative \}>
+    <div className={`w-full h-screen relative ${mapMode === 'light' ? 'bg-[#f5f5f5]' : 'bg-[#0a0a0a]'}`}>
       <MapContainer 
         center={[0, 0]} 
         zoom={3} 

@@ -35,8 +35,8 @@ export default function HUD({ selectedColor, onSelectColor, mapMode = "dark" }: 
       {/* Left side HUD */}
       <div className="flex flex-col gap-4">
         {/* Branding / Info Box */}
-        <div className={\ackdrop-blur-xl border rounded-2xl p-4 flex flex-col gap-1 pointer-events-auto transition-colors \\}>
-          <h1 className={\	ext-xl font-black \\}>
+        <div className={`backdrop-blur-xl border rounded-2xl p-4 flex flex-col gap-1 pointer-events-auto transition-colors ${isLight ? 'bg-white/80 border-black/10' : 'bg-black/80 border-white/[0.06]'}`}>
+          <h1 className={`text-xl font-black ${isLight ? 'text-black' : 'text-white'}`}>
             Celo<span className="text-celo-yellow">Place</span>
           </h1>
           <div className="text-sm flex items-center gap-2 mt-2">
@@ -44,12 +44,12 @@ export default function HUD({ selectedColor, onSelectColor, mapMode = "dark" }: 
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin text-celo-green" />
             ) : (
-              <span className={\ont-mono px-2 py-0.5 rounded font-semibold \\}>
+              <span className={`font-mono px-2 py-0.5 rounded font-semibold ${isLight ? 'bg-black/5 text-black' : 'bg-white/10 text-white'}`}>
                  {remaining !== undefined ? Number(remaining) : 3}/3
               </span>
             )}
           </div>
-          <p className={\	ext-xs mt-1 max-w-[200px] \\}>
+          <p className={`text-xs mt-1 max-w-[200px] ${isLight ? 'text-gray-400' : 'text-text-secondary'}`}>
             Click the map to paint. Limits reset daily.
           </p>
         </div>
@@ -60,9 +60,9 @@ export default function HUD({ selectedColor, onSelectColor, mapMode = "dark" }: 
 
       {/* Center HUD - Global Pixel Counter (Rev 6) */}
       <div className="flex justify-center pointer-events-auto absolute left-1/2 -translate-x-1/2 top-4">
-        <div className={\ackdrop-blur-xl border rounded-full px-6 py-2 flex items-center gap-3 transition-colors shadow-lg \\}>
+        <div className={`backdrop-blur-xl border rounded-full px-6 py-2 flex items-center gap-3 transition-colors shadow-lg ${isLight ? 'bg-white/80 border-black/10 text-black' : 'bg-black/80 border-white/[0.06] text-white'}`}>
           <div className="w-2 h-2 rounded-full bg-celo-green animate-pulse" />
-          <span className={\	ext-xs font-semibold uppercase tracking-wider \\}>Pixels Placed</span>
+          <span className={`text-xs font-semibold uppercase tracking-wider ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>Pixels Placed</span>
           <span className="font-mono text-lg font-bold text-celo-yellow">
             {pixels.length.toLocaleString()}
           </span>
