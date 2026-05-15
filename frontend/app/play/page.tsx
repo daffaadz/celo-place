@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import HUD from "@/components/game/HUD";
 import GlobalChat from "@/components/game/GlobalChat";
 import NetworkGuard from "@/components/shared/NetworkGuard";
+import { useAccount } from "wagmi";
+import OnboardingModal from "@/components/game/OnboardingModal";
 
 const MapCanvas = dynamic(() => import("@/components/game/MapCanvas"), {
   ssr: false,
@@ -21,16 +23,35 @@ export type MapMode = "dark" | "light" | "satellite";
 export default function PlayPage() {
   const [selectedColor, setSelectedColor] = useState<string>("#FF0000");
   const [mapMode, setMapMode] = useState<MapMode>("dark");
+  const { address, isConnected } = useAccount();
+
+  const [showOnboarding, setShowOnboarding] = useState(true);
+
+  // Check login status on mount and when account changes
+  useEffect(() => {
+    if (isConnected && address) {
+      const savedName = localStorage.getItem(`celoplace_name_${address.toLowerCase()}`);
+      if (savedName) {
+        setShowOnboarding(false);
+      } else {
+        setShowOnboarding(true);
+      }
+    } else {
+      setShowOnboarding(true);
+    }
+  }, [isConnected, address]);
+
 
   const isLight = mapMode === "light";
 
   return (
-    <main className={`w-full h-screen overflow-hidden flex flex-col relative ${isLight ? 'bg-white' : 'bg-bg-base'}`}>
+    <main className={`w-full h-screen overflow-hidden flex flex-col relative ${isLight ? 'bg-white' : 'bg-[#0a0a0a]'}`}>
       <NetworkGuard>
+        {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
         <HUD selectedColor={selectedColor} onSelectColor={setSelectedColor} mapMode={mapMode} />
         <GlobalChat mapMode={mapMode} />
-        <MapCanvas selectedColor={selectedColor} mapMode={mapMode} />
-
+        {!showOnboarding && <MapCanvas selectedColor={selectedColor} mapMode={mapMode} />}
+        
         {/* Map Mode Switcher */}
         <div className={`fixed bottom-6 left-4 z-[1000] flex p-1 rounded-xl backdrop-blur-xl border shadow-xl ${isLight ? 'bg-white/80 border-black/10' : 'bg-black/90 border-white/[0.1]'}`}>
           {(["dark", "light", "satellite"] as MapMode[]).map((mode) => (
