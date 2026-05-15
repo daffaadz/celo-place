@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
+import { type MapMode } from "@/app/play/page";
 import { MapContainer, TileLayer, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -19,46 +20,76 @@ import { encodeCoord } from "@/lib/utils";
 
 interface MapCanvasProps {
   selectedColor: string;
+  mapMode?: MapMode;
 }
 
-// Inner component to handle map events and canvas overlay
-function MapEventsAndCanvas({ selectedColor }: { selectedColor: string }) {
+const STEP = 0.0001; // 10000 multiplier precision
+
+// Input Snapping
+function snapCoordinate(coord: number) {
+  return Math.round(coord / STEP) * STEP;
+}
+
+function MapEventsAndCanvas({ selectedColor, mapMode = "dark" }: MapCanvasProps) {
   const map = useMap();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { placePixel, isWriting, pixels, isLoadingPixels, fetchAllPixels } = usePixelCanvas();
   const { address } = useAccount();
 
-  // Redraw canvas whenever map moves or pixels change
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Match canvas size to map container
     const size = map.getSize();
     canvas.width = size.x;
     canvas.height = size.y;
     ctx.clearRect(0, 0, size.x, size.y);
 
+    const zoom = map.getZoom();
+    const bounds = map.getBounds();
+    const isLight = mapMode === "light";
+
+    // Draw GRID if zoom >= 16 (Rev 2)
+    if (zoom >= 16) {
+      ctx.strokeStyle = isLight ? "rgba(0, 0, 0, 0.1)" : "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      
+      const startLat = Math.floor(bounds.getSouth() / STEP) * STEP;
+      const endLat = Math.ceil(bounds.getNorth() / STEP) * STEP;
+      const startLng = Math.floor(bounds.getWest() / STEP) * STEP;
+      const endLng = Math.ceil(bounds.getEast() / STEP) * STEP;
+
+      for (let lat = startLat; lat <= endLat; lat += STEP) {
+        const p1 = map.latLngToContainerPoint([lat, startLng]);
+        const p2 = map.latLngToContainerPoint([lat, endLng]);
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+      }
+      for (let lng = startLng; lng <= endLng; lng += STEP) {
+        const p1 = map.latLngToContainerPoint([startLat, lng]);
+        const p2 = map.latLngToContainerPoint([endLat, lng]);
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+      }
+      ctx.stroke();
+    }
+
     // Draw all known pixels
     pixels.forEach((p) => {
-      const point = map.latLngToContainerPoint([p.lat, p.lng]);
-      const bounds = map.getBounds();
-      // Only draw if within bounds
       if (bounds.contains([p.lat, p.lng])) {
-        // Size scales with zoom
-        const pixelSize = Math.max(2, map.getZoom() - 1); 
+        // Bounding box of the snapped pixel
+        const nw = map.latLngToContainerPoint([p.lat + STEP/2, p.lng - STEP/2]);
+        const se = map.latLngToContainerPoint([p.lat - STEP/2, p.lng + STEP/2]);
+        
         ctx.fillStyle = p.color;
-        ctx.fillRect(Math.floor(point.x - pixelSize/2), Math.floor(point.y - pixelSize/2), pixelSize, pixelSize);
-        // Optional border for glow effect
-        ctx.strokeStyle = "rgba(0,0,0,0.5)";
-        ctx.strokeRect(Math.floor(point.x - pixelSize/2), Math.floor(point.y - pixelSize/2), pixelSize, pixelSize);
+        ctx.fillRect(Math.floor(nw.x), Math.floor(nw.y), Math.ceil(se.x - nw.x), Math.ceil(se.y - nw.y));
       }
     });
-  }, [map, pixels]);
+  }, [map, pixels, mapMode]);
 
-  // Hook into map panning and zooming
   useEffect(() => {
     map.on("move", redrawCanvas);
     map.on("zoom", redrawCanvas);
@@ -70,15 +101,12 @@ function MapEventsAndCanvas({ selectedColor }: { selectedColor: string }) {
     };
   }, [map, redrawCanvas]);
 
-  // Handle map click
   useMapEvents({
     click(e) {
       if (!address || isWriting) return;
-      const lat = e.latlng.lat;
-      const lng = e.latlng.lng;
-      
-      // We will place the pixel on chain
-      handleDraw(lat, lng);
+      const snappedLat = snapCoordinate(e.latlng.lat);
+      const snappedLng = snapCoordinate(e.latlng.lng);
+      handleDraw(snappedLat, snappedLng);
     },
   });
 
@@ -86,12 +114,7 @@ function MapEventsAndCanvas({ selectedColor }: { selectedColor: string }) {
     try {
       const encLat = encodeCoord(lat);
       const encLng = encodeCoord(lng);
-      
       await placePixel(encLat, encLng, selectedColor);
-      
-      // Optimistic UI update
-      // setPixels((prev) => [...prev, { lat, lng, color: selectedColor, painter: address as string }]);
-      // We will refetch instead to ensure consistency
       await fetchAllPixels();
       redrawCanvas();
     } catch (err) {
@@ -99,7 +122,6 @@ function MapEventsAndCanvas({ selectedColor }: { selectedColor: string }) {
     }
   };
 
-  // Initial draw and fetch
   useEffect(() => {
     fetchAllPixels();
   }, [fetchAllPixels]);
@@ -124,9 +146,16 @@ function MapEventsAndCanvas({ selectedColor }: { selectedColor: string }) {
   );
 }
 
-export default function MapCanvas({ selectedColor }: MapCanvasProps) {
+export default function MapCanvas({ selectedColor, mapMode = "dark" }: MapCanvasProps) {
+  // Tile URLs (Rev 3)
+  const tiles = {
+    dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    light: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+  };
+
   return (
-    <div className="w-full h-screen bg-[#0a0a0a] relative">
+    <div className={w-full h-screen relative \}>
       <MapContainer 
         center={[0, 0]} 
         zoom={3} 
@@ -135,15 +164,13 @@ export default function MapCanvas({ selectedColor }: MapCanvasProps) {
         zoomControl={false}
         worldCopyJump={true}
       >
-        {/* Dark map tiles matching CeloPlace vibe */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; OpenStreetMap & CARTO / Esri'
+          url={tiles[mapMode]}
           subdomains="abcd"
           maxZoom={19}
         />
-        
-        <MapEventsAndCanvas selectedColor={selectedColor} />
+        <MapEventsAndCanvas selectedColor={selectedColor} mapMode={mapMode} />
       </MapContainer>
     </div>
   );
