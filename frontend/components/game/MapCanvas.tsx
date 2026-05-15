@@ -25,14 +25,8 @@ interface MapCanvasProps {
 function MapEventsAndCanvas({ selectedColor }: { selectedColor: string }) {
   const map = useMap();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { placePixel, isWriting } = usePixelCanvas();
+  const { placePixel, isWriting, pixels, isLoadingPixels, fetchAllPixels } = usePixelCanvas();
   const { address } = useAccount();
-
-  // We maintain a list of pixels. 
-  // In a real prod setup, we'd fetch ALL historical pixels via subgraph/indexer.
-  // For the hackathon MVP, we will let users draw, and ideally rely on indexer,
-  // but here we just store recent ones locally + read dynamically if possible.
-  const [pixels, setPixels] = useState<{lat: number, lng: number, color: string, painter: string}[]>([]);
 
   // Redraw canvas whenever map moves or pixels change
   const redrawCanvas = useCallback(() => {
@@ -96,26 +90,37 @@ function MapEventsAndCanvas({ selectedColor }: { selectedColor: string }) {
       await placePixel(encLat, encLng, selectedColor);
       
       // Optimistic UI update
-      setPixels((prev) => [...prev, { lat, lng, color: selectedColor, painter: address as string }]);
+      // setPixels((prev) => [...prev, { lat, lng, color: selectedColor, painter: address as string }]);
+      // We will refetch instead to ensure consistency
+      await fetchAllPixels();
       redrawCanvas();
     } catch (err) {
       console.error("Failed to place pixel:", err);
     }
   };
 
-  // Initial draw
+  // Initial draw and fetch
+  useEffect(() => {
+    fetchAllPixels();
+  }, [fetchAllPixels]);
+
   useEffect(() => {
     redrawCanvas();
   }, [redrawCanvas]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="absolute top-0 left-0 w-full h-full pointer-events-none z-[400]"
-      style={{
-        // leaflet puts tile layers at z-200. z-400 puts overlay securely above them
-      }}
-    />
+    <>
+      {isLoadingPixels && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[500] bg-black/80 text-celo-yellow px-4 py-2 rounded-full font-mono text-sm shadow-[0_0_10px_rgba(255,255,0,0.2)] border border-celo-yellow/20 flex items-center gap-2">
+          <div className="w-3 h-3 border-2 border-celo-yellow border-t-transparent rounded-full animate-spin"></div>
+          Restoring Canvas...
+        </div>
+      )}
+      <canvas
+        ref={canvasRef}
+        className="absolute top-0 left-0 w-full h-full pointer-events-none z-[400]"
+      />
+    </>
   );
 }
 

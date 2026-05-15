@@ -5,14 +5,25 @@ import { parseEther } from "viem";
 export function useGlobalChat() {
   const { writeContractAsync, isPending: isWriting } = useWriteContract();
 
-  const getMessages = (offset: number, limit: number) => {
+  const getRecentMessages = (count: number) => {
     return useReadContract({
       address: CONTRACT_ADDRESSES.celoChat,
       abi: CELOCHAT_ABI,
-      functionName: "getMessages",
-      args: [BigInt(offset), BigInt(limit)],
+      functionName: "getRecentMessages",
+      args: [BigInt(count)],
       query: {
         refetchInterval: 5000, // Poll every 5s
+      }
+    });
+  };
+
+  const getTotalMessages = () => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.celoChat,
+      abi: CELOCHAT_ABI,
+      functionName: "getTotalMessages",
+      query: {
+        refetchInterval: 5000,
       }
     });
   };
@@ -37,7 +48,8 @@ export function useGlobalChat() {
   };
 
   return {
-    getMessages,
+    getRecentMessages,
+    getTotalMessages,
     sendMessage,
     tipMessage,
     isWriting,

@@ -13,11 +13,14 @@ export default function GlobalChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const { address } = useAccount();
-  const { getMessages, sendMessage, tipMessage, isWriting } = useGlobalChat();
+  const { getRecentMessages, getTotalMessages, sendMessage, tipMessage, isWriting } = useGlobalChat();
   
-  const { data: messagesData, isLoading } = getMessages(0, 50);
+  const { data: messagesData, isLoading } = getRecentMessages(50);
+  const { data: totalMessagesData } = getTotalMessages();
 
   const messages = Array.isArray(messagesData) ? messagesData : [];
+  const totalMsgs = Number(totalMessagesData || 0);
+  const offset = Math.max(0, totalMsgs - 50);
 
   useEffect(() => {
     if (isOpen) {
@@ -82,9 +85,10 @@ export default function GlobalChat() {
           <div className="text-center text-text-secondary text-sm mt-10">No messages yet. Be the first!</div>
         ) : (
           messages.map((msg: { sender: string, content: string, timestamp: bigint }, i: number) => {
+            const trueMessageId = offset + i;
             const isMe = msg.sender.toLowerCase() === address?.toLowerCase();
             return (
-              <div key={i} className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
+              <div key={trueMessageId} className={cn("flex flex-col", isMe ? "items-end" : "items-start")}>
                 <div className="flex items-baseline gap-2 mb-1">
                   <span className={cn("text-xs font-mono", isMe ? "text-celo-yellow" : "text-celo-green")}>
                     {isMe ? "You" : truncateAddress(msg.sender)}
@@ -102,13 +106,13 @@ export default function GlobalChat() {
                     <input
                       type="number"
                       placeholder="CELO"
-                      value={tipInput[i] || ""}
-                      onChange={(e) => setTipInput(prev => ({...prev, [i]: e.target.value}))}
+                      value={tipInput[trueMessageId] || ""}
+                      onChange={(e) => setTipInput(prev => ({...prev, [trueMessageId]: e.target.value}))}
                       className="w-16 bg-black border border-white/10 rounded text-[10px] px-1.5 py-0.5 text-white"
                       step="0.1"
                     />
                     <button
-                      onClick={() => handleTip(i)}
+                      onClick={() => handleTip(trueMessageId)}
                       disabled={isWriting}
                       className="text-[10px] flex items-center gap-1 text-celo-yellow hover:text-white disabled:opacity-50"
                     >
