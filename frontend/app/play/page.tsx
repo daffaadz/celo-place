@@ -23,6 +23,7 @@ export type MapMode = "dark" | "light" | "satellite";
 export default function PlayPage() {
   const [selectedColor, setSelectedColor] = useState<string>("#FF0000");
   const [mapMode, setMapMode] = useState<MapMode>("dark");
+  const [flyToCoord, setFlyToCoord] = useState<{ lat: number; lng: number } | null>(null);
   const { address, isConnected } = useAccount();
 
   const [showOnboarding, setShowOnboarding] = useState(true);
@@ -48,20 +49,25 @@ export default function PlayPage() {
     <main className={`w-full h-screen overflow-hidden flex flex-col relative ${isLight ? 'bg-white' : 'bg-[#0a0a0a]'}`}>
       <NetworkGuard>
         {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
-        <HUD selectedColor={selectedColor} onSelectColor={setSelectedColor} mapMode={mapMode} />
+        <HUD 
+          selectedColor={selectedColor} 
+          onSelectColor={setSelectedColor} 
+          onSearchLocation={(lat, lng) => setFlyToCoord({ lat, lng })}
+          mapMode={mapMode} 
+        />
         <GlobalChat mapMode={mapMode} />
-        {!showOnboarding && <MapCanvas selectedColor={selectedColor} mapMode={mapMode} />}
+        {!showOnboarding && <MapCanvas selectedColor={selectedColor} mapMode={mapMode} flyToCoord={flyToCoord} />}
         
         {/* Map Mode Switcher */}
-        <div className={`fixed bottom-6 left-4 z-[1000] flex p-1 rounded-xl backdrop-blur-xl border shadow-xl ${isLight ? 'bg-white/80 border-black/10' : 'bg-black/90 border-white/[0.1]'}`}>
+        <div className={`fixed bottom-6 left-4 z-[1000] flex p-1 rounded-xl backdrop-blur-xl border shadow-xl ${isLight ? 'bg-white/90 border-black/20' : 'bg-black/90 border-white/[0.15]'}`}>
           {(["dark", "light", "satellite"] as MapMode[]).map((mode) => (
             <button
               key={mode}
               onClick={() => setMapMode(mode)}
-              className={`px-4 py-2 text-sm rounded-lg capitalize transition-all ${
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg capitalize transition-all ${
                 mapMode === mode 
-                  ? 'bg-celo-yellow text-black font-semibold' 
-                  : (isLight ? 'text-gray-500 hover:text-gray-900 hover:bg-black/5' : 'text-text-secondary hover:text-white hover:bg-white/10')
+                  ? 'bg-celo-yellow text-black' 
+                  : (isLight ? 'text-gray-600 hover:text-gray-900 hover:bg-black/5' : 'text-text-secondary hover:text-white hover:bg-white/10')
               }`}
             >
               {mode}

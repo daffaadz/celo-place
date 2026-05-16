@@ -66,9 +66,9 @@ export default function GlobalChat({ mapMode = "dark" }: { mapMode?: string }) {
 
       {/* Sidebar Chat */}
       <div className={cn(
-        "absolute right-0 top-0 z-[1000] w-[420px] h-screen flex flex-col pointer-events-auto transition-transform duration-300 backdrop-blur-xl",
-        isLight ? "bg-white/95 border-l border-black/10 shadow-[-10px_0_30px_rgba(0,0,0,0.05)] text-black" : "bg-black/95 border-l border-white/[0.1] shadow-2xl text-white",
-        isOpen ? "translate-x-0" : "translate-x-full"
+        "fixed right-4 top-4 bottom-4 z-[1000] w-[380px] flex flex-col pointer-events-auto transition-transform duration-300 backdrop-blur-xl rounded-2xl overflow-hidden",
+        isLight ? "bg-white/95 border border-black/10 shadow-2xl text-black" : "bg-black/95 border border-white/[0.1] shadow-2xl text-white",
+        isOpen ? "translate-x-0" : "translate-x-[120%]"
       )}>
         <div className={cn(
           "p-4 border-b flex items-center justify-between",

@@ -22,16 +22,17 @@ import { encodeCoord, truncateAddress } from "@/lib/utils";
 interface MapCanvasProps {
   selectedColor: string;
   mapMode?: MapMode;
+  flyToCoord?: { lat: number; lng: number } | null;
 }
 
-const STEP = 0.06; // Ukuran diperbesar (dari 0.02 ke 0.05)
+const STEP = 0.08; // Ukuran diperbesar (dari 0.02 ke 0.05)
 
 // Input Snapping
 function snapCoordinate(coord: number) {
   return Math.round(coord / STEP) * STEP;
 }
 
-function MapEventsAndCanvas({ selectedColor, mapMode = "dark" }: MapCanvasProps) {
+function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: MapCanvasProps) {
   const map = useMap();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { placePixel, isWriting, pixels, isLoadingPixels, fetchAllPixels } = usePixelCanvas();
@@ -130,7 +131,13 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark" }: MapCanvasProps)
       const snappedLat = snapCoordinate(e.latlng.lat);
       const snappedLng = snapCoordinate(e.latlng.lng);
 
-      const found = pixels.find(p => p.lat === snappedLat && p.lng === snappedLng);
+      // Gunakan Math.abs untuk mengompensasi presisi floating point JS
+      const epsilon = 0.00001;
+      const found = pixels.find(p => 
+        Math.abs(p.lat - snappedLat) < epsilon && 
+        Math.abs(p.lng - snappedLng) < epsilon
+      );
+      
       setHoveredPixel({ 
         lat: snappedLat,
         lng: snappedLng,
@@ -164,6 +171,12 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark" }: MapCanvasProps)
     redrawCanvas();
   }, [redrawCanvas]);
 
+  useEffect(() => {
+    if (flyToCoord) {
+      map.flyTo([flyToCoord.lat, flyToCoord.lng], 14, { animate: true, duration: 1.5 });
+    }
+  }, [flyToCoord, map]);
+
   const isLight = mapMode === "light";
 
   return (
@@ -191,7 +204,7 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark" }: MapCanvasProps)
   );
 }
 
-export default function MapCanvas({ selectedColor, mapMode = "dark" }: MapCanvasProps) {
+export default function MapCanvas({ selectedColor, mapMode = "dark", flyToCoord }: MapCanvasProps) {
   // Tile URLs
   const tiles = {
     dark: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
@@ -221,7 +234,7 @@ export default function MapCanvas({ selectedColor, mapMode = "dark" }: MapCanvas
           noWrap={true}
           bounds={[[-90, -180], [90, 180]]}
         />
-        <MapEventsAndCanvas selectedColor={selectedColor} mapMode={mapMode} />
+        <MapEventsAndCanvas selectedColor={selectedColor} mapMode={mapMode} flyToCoord={flyToCoord} />
       </MapContainer>
     </div>
   );
