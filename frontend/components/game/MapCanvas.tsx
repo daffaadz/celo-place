@@ -25,7 +25,7 @@ interface MapCanvasProps {
   flyToCoord?: { lat: number; lng: number } | null;
 }
 
-const STEP = 0.08; // Ukuran diperbesar (dari 0.02 ke 0.05)
+const STEP = 0.08;
 
 // Input Snapping
 function snapCoordinate(coord: number) {
@@ -38,7 +38,9 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
   const { placePixel, isWriting, pixels, isLoadingPixels, fetchAllPixels, fetchOverwritePrice } = usePixelCanvas();
   const { address } = useAccount();
 
-  const [hoveredPixel, setHoveredPixel] = useState<{ lat: number, lng: number, x: number, y: number, pixel?: PixelData, priceWei?: bigint } | null>(null);
+  const [hoveredPixel, setHoveredPixel] = useState<{ lat: number, lng: number, pixel?: PixelData, priceWei?: bigint } | null>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const pointerRef = useRef({ x: 0, y: 0 });
 
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -127,28 +129,45 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
 
       handleDraw(snappedLat, snappedLng);
     },
-    async mousemove(e) {
+    mousemove(e) {
+      pointerRef.current = { x: e.containerPoint.x, y: e.containerPoint.y };
+
+      if (tooltipRef.current) {
+        tooltipRef.current.style.left = `${e.containerPoint.x}px`;
+        tooltipRef.current.style.top = `${e.containerPoint.y}px`;
+      }
+
       const snappedLat = snapCoordinate(e.latlng.lat);
       const snappedLng = snapCoordinate(e.latlng.lng);
 
-      const epsilon = 0.00001;
-      const found = pixels.find(p =>
-        Math.abs(p.lat - snappedLat) < epsilon &&
-        Math.abs(p.lng - snappedLng) < epsilon
-      );
+      setHoveredPixel(prev => {
+        if (prev && prev.lat === snappedLat && prev.lng === snappedLng) {
+          return prev;
+        }
 
-      let priceWei = BigInt("1000000000000000"); // default 0.001 CELO
-      if (found) {
-        priceWei = await fetchOverwritePrice(encodeCoord(snappedLat), encodeCoord(snappedLng));
-      }
+        const epsilon = 0.00001;
+        const found = pixels.find(p =>
+          Math.abs(p.lat - snappedLat) < epsilon &&
+          Math.abs(p.lng - snappedLng) < epsilon
+        );
 
-      setHoveredPixel({
-        lat: snappedLat,
-        lng: snappedLng,
-        x: e.containerPoint.x,
-        y: e.containerPoint.y,
-        pixel: found,
-        priceWei: priceWei
+        if (found) {
+          fetchOverwritePrice(encodeCoord(snappedLat), encodeCoord(snappedLng)).then(price => {
+            setHoveredPixel(current => {
+              if (current && current.lat === snappedLat && current.lng === snappedLng) {
+                return { ...current, priceWei: price };
+              }
+              return current;
+            });
+          });
+        }
+
+        return {
+          lat: snappedLat,
+          lng: snappedLng,
+          pixel: found,
+          priceWei: found ? undefined : BigInt("1000000000000000")
+        };
       });
     },
     mouseout() {
@@ -199,8 +218,9 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
       />
       {hoveredPixel?.pixel && hoveredPixel.priceWei !== undefined && (
         <OverwritePriceTooltip
-          x={hoveredPixel.x}
-          y={hoveredPixel.y}
+          ref={tooltipRef}
+          initialX={pointerRef.current.x}
+          initialY={pointerRef.current.y}
           isLight={isLight}
           painter={hoveredPixel.pixel.painter}
           priceWei={hoveredPixel.priceWei}
@@ -224,6 +244,7 @@ export default function MapCanvas({ selectedColor, mapMode = "dark", flyToCoord 
       <MapContainer
         center={[0, 0]}
         zoom={4}
+        minZoom={1}
         scrollWheelZoom={true}
         className="w-full h-full z-0 font-sans"
         zoomControl={false}
@@ -236,6 +257,7 @@ export default function MapCanvas({ selectedColor, mapMode = "dark", flyToCoord 
           attribution='&copy; OpenStreetMap & CARTO / Esri'
           url={tiles[mapMode]}
           subdomains="abcd"
+          minZoom={1}
           maxNativeZoom={19}
           maxZoom={26}
           noWrap={true}

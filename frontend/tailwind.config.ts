@@ -18,6 +18,7 @@ const config: Config = {
         "celo-yellow-dim": "var(--celo-yellow-dim)",
         "celo-green": "var(--celo-green)",
         "celo-green-dim": "var(--celo-green-dim)",
+        "celo-green-darker": "var(--celo-green-darker)",
         "text-primary": "var(--text-primary)",
         "text-secondary": "var(--text-secondary)",
         "text-muted": "var(--text-muted)",

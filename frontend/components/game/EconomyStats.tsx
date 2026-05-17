@@ -43,7 +43,7 @@ export function EconomyStats({ isLight = false }: EconomyStatsProps) {
     address: CONTRACT_ADDRESSES.rewardPool,
   });
 
-  const pBal = poolBalance ? Number(formatEther(poolBalance.value)).toFixed(2) : "0.00";
+  const pBal = poolBalance ? Number(formatEther(poolBalance.value)).toFixed(3) : "0.000";
 
   const { pixels } = usePixelCanvas();
 
@@ -61,10 +61,10 @@ export function EconomyStats({ isLight = false }: EconomyStatsProps) {
   return (
     <div className={`p-3 w-full flex flex-col space-y-2 backdrop-blur-xl border rounded-lg shadow-sm transition-colors ${isLight ? 'bg-white/90 border-black/10 text-black' : 'bg-black/80 border-white/10 text-white'}`}>
       <div className="flex justify-between items-center border-b pb-1.5 border-white/10">
-        <span className="text-[10px] font-semibold tracking-wider uppercase opacity-80 flex justify-center items-center gap-1.5 text-celo-yellow">
+        <span className={`text-[10px] font-semibold tracking-wider uppercase opacity-80 flex justify-center items-center gap-1.5 ${isLight ? 'text-black' : 'text-celo-yellow'}`}>
           <Trophy className="w-3 h-3" /> Top Painters
         </span>
-        <span className="text-[10px] font-mono font-bold text-celo-green">{pBal} CELO</span>
+        <span className={`text-[10px] font-mono font-bold ${isLight ? 'text-green-700' : 'text-celo-green'}`}>{pBal} CELO</span>
       </div>
 
       <div className="flex flex-col space-y-1">
