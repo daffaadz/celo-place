@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
 const PALETTE = [
-  "#FF0000", "#FF7F00", "#FFFF00", "#00FF00", 
+  "#FF0000", "#FF7F00", "#FFFF00", "#00FF00",
   "#0000FF", "#4B0082", "#9400D3", "#FFFFFF",
   "#000000", "#808080", "#FFC0CB", "#A52A2A"
 ];
@@ -14,11 +14,12 @@ interface ColorPickerProps {
   selectedColor: string;
   onSelectColor: (color: string) => void;
   mapMode?: string;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
-export default function ColorPicker({ selectedColor, onSelectColor, mapMode = "dark" }: ColorPickerProps) {
+export default function ColorPicker({ selectedColor, onSelectColor, mapMode = "dark", isOpen, onToggle }: ColorPickerProps) {
   const [hexInput, setHexInput] = useState(selectedColor);
-  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     setHexInput(selectedColor);
@@ -28,7 +29,7 @@ export default function ColorPicker({ selectedColor, onSelectColor, mapMode = "d
     let val = e.target.value.toUpperCase();
     if (!val.startsWith('#')) val = '#' + val;
     setHexInput(val);
-    
+
     // Validate hex before updating parent
     if (/^#[0-9A-F]{6}$/i.test(val)) {
       onSelectColor(val);
@@ -41,11 +42,11 @@ export default function ColorPicker({ selectedColor, onSelectColor, mapMode = "d
     <div className="relative">
       {/* Toggle Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={onToggle}
         className={cn(
           "w-10 h-10 rounded-xl flex items-center justify-center pointer-events-auto transition-transform hover:scale-105 shadow-md border",
-          isLight 
-            ? (isOpen ? "bg-celo-yellow border-black/20 text-black" : "bg-white/90 border-black/20 text-black") 
+          isLight
+            ? (isOpen ? "bg-celo-yellow border-black/20 text-black" : "bg-white/90 border-black/20 text-black")
             : (isOpen ? "bg-celo-yellow border-white/20 text-black" : "bg-black/80 border-white/20 text-white backdrop-blur-md")
         )}
       >
@@ -64,7 +65,7 @@ export default function ColorPicker({ selectedColor, onSelectColor, mapMode = "d
           <div className={cn("text-xs font-semibold uppercase tracking-wider pl-1", isLight ? "text-gray-500" : "text-text-secondary")}>
             Palette & Custom
           </div>
-          
+
           {/* Predefined Palette */}
           <div className="grid grid-cols-4 gap-2">
             {PALETTE.map((color) => {
@@ -75,7 +76,7 @@ export default function ColorPicker({ selectedColor, onSelectColor, mapMode = "d
                   onClick={() => onSelectColor(color)}
                   className={cn(
                     "w-8 h-8 rounded-full transition-all duration-200 border-2 mx-auto",
-                    isSelected 
+                    isSelected
                       ? (isLight ? "scale-110 border-black shadow-[0_0_8px_rgba(0,0,0,0.2)]" : "scale-110 border-white shadow-[0_0_10px_rgba(255,255,255,0.5)]")
                       : (isLight ? "border-black/5 hover:scale-105" : "border-white/5 hover:scale-105")
                   )}
@@ -97,14 +98,14 @@ export default function ColorPicker({ selectedColor, onSelectColor, mapMode = "d
               "flex items-center gap-2 px-2 py-1.5 rounded-lg border flex-1",
               isLight ? "bg-gray-100 border-gray-300 text-black" : "bg-white/5 border-white/20 text-white font-mono"
             )}>
-               <span className={isLight ? "text-gray-500 font-sans text-xs" : "text-gray-400 text-xs"}>Hex</span>
-               <input 
-                 type="text" 
-                 value={hexInput}
-                 onChange={handleHexChange}
-                 className="bg-transparent outline-none w-16 text-sm uppercase"
-                 maxLength={7}
-               />
+              <span className={isLight ? "text-gray-500 font-sans text-xs" : "text-gray-400 text-xs"}>Hex</span>
+              <input
+                type="text"
+                value={hexInput}
+                onChange={handleHexChange}
+                className="bg-transparent outline-none w-16 text-sm uppercase"
+                maxLength={7}
+              />
             </div>
 
             <div className={cn(

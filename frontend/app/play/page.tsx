@@ -8,6 +8,9 @@ import NetworkGuard from "@/components/shared/NetworkGuard";
 import { useAccount } from "wagmi";
 import OnboardingModal from "@/components/game/OnboardingModal";
 
+import EconomyModal from "@/components/game/EconomyModal";
+import { RewardClaimPanel } from "@/components/game/RewardClaimPanel";
+
 const MapCanvas = dynamic(() => import("@/components/game/MapCanvas"), {
   ssr: false,
   loading: () => (
@@ -27,6 +30,7 @@ export default function PlayPage() {
   const { address, isConnected } = useAccount();
 
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showEconomyModal, setShowEconomyModal] = useState(false);
 
   // Check login status on mount and when account changes
   useEffect(() => {
@@ -49,14 +53,19 @@ export default function PlayPage() {
     <main className={`w-full h-screen overflow-hidden flex flex-col relative ${isLight ? 'bg-white' : 'bg-[#0a0a0a]'}`}>
       <NetworkGuard>
         {showOnboarding && <OnboardingModal onComplete={() => setShowOnboarding(false)} />}
+        {showEconomyModal && <EconomyModal onClose={() => setShowEconomyModal(false)} isLight={isLight} />}
         <HUD 
           selectedColor={selectedColor} 
           onSelectColor={setSelectedColor} 
           onSearchLocation={(lat, lng) => setFlyToCoord({ lat, lng })}
           mapMode={mapMode} 
+          onOpenEconomy={() => setShowEconomyModal(true)}
         />
         <GlobalChat mapMode={mapMode} />
         {!showOnboarding && <MapCanvas selectedColor={selectedColor} mapMode={mapMode} flyToCoord={flyToCoord} />}
+        
+        {/* Floating Economy Panels */}
+        {!showOnboarding && <RewardClaimPanel isLight={isLight} />}
         
         {/* Map Mode Switcher */}
         <div className={`fixed bottom-6 left-4 z-[1000] flex p-1 rounded-xl backdrop-blur-xl border shadow-xl ${isLight ? 'bg-white/90 border-black/20' : 'bg-black/90 border-white/[0.15]'}`}>

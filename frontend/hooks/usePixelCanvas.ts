@@ -9,6 +9,7 @@ export type PixelData = {
   lng: number;
   color: string;
   painter: string;
+  timestamp: number;
 };
 
 export function usePixelCanvas() {
@@ -20,23 +21,29 @@ export function usePixelCanvas() {
     queryKey: ["pixel-logs"],
     queryFn: async () => {
       if (!publicClient) return [];
-      const logs = await publicClient.getLogs({
-        address: CONTRACT_ADDRESSES.celoPlace,
-        event: parseAbiItem("event PixelPainted(address indexed painter, int256 lat, int256 lng, uint24 color, uint256 timestamp)"),
-        fromBlock: BigInt(0),
-        toBlock: "latest",
-      });
+      try {
+        const logs = await publicClient.getLogs({
+          address: CONTRACT_ADDRESSES.celoPlace,
+          event: parseAbiItem("event PixelPainted(address indexed painter, int256 lat, int256 lng, uint24 color, uint256 timestamp)"),
+          fromBlock: 0n,
+          toBlock: "latest",
+        });
 
-      const reconstructed: PixelData[] = logs.map(log => {
-        const args = log.args as any;
-        return {
-          lat: decodeCoord(args.lat),
-          lng: decodeCoord(args.lng),
-          color: uint24ToHex(args.color),
-          painter: args.painter,
-        };
-      });
-      return reconstructed;
+        const reconstructed: PixelData[] = logs.map(log => {
+          const args = log.args as any;
+          return {
+            lat: decodeCoord(args.lat),
+            lng: decodeCoord(args.lng),
+            color: uint24ToHex(args.color),
+            painter: args.painter,
+            timestamp: Number(args.timestamp),
+          };
+        });
+        return reconstructed;
+      } catch (error) {
+        console.error("Error fetching pixel logs:", error);
+        return [];
+      }
     },
     refetchInterval: 10000,
   });
@@ -50,11 +57,11 @@ export function usePixelCanvas() {
     });
   };
 
-  const getRemainingPixels = (userAddress: `0x${string}` | undefined) => {
+  const getTierInfo = (userAddress: `0x${string}` | undefined) => {
     return useReadContract({
       address: CONTRACT_ADDRESSES.celoPlace,
       abi: CELOPLACE_ABI,
-      functionName: "getCharges",
+      functionName: "getTierInfo",
       args: [userAddress || "0x0000000000000000000000000000000000000000"],
       query: {
         enabled: !!userAddress,
@@ -62,7 +69,44 @@ export function usePixelCanvas() {
     });
   };
 
-  const placePixel = async (latEnc: bigint, lngEnc: bigint, colorHex: string) => {
+  const getBaseCharges = (userAddress: `0x${string}` | undefined) => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.celoPlace,
+      abi: CELOPLACE_ABI,
+      functionName: "getTierCharges",
+      args: [userAddress || "0x0000000000000000000000000000000000000000"],
+      query: {
+        enabled: !!userAddress,
+      }
+    });
+  };
+
+  const getOverwritePrice = (lat: bigint, lng: bigint) => {
+    return useReadContract({
+      address: CONTRACT_ADDRESSES.celoPlace,
+      abi: CELOPLACE_ABI,
+      functionName: "getOverwritePrice",
+      args: [lat, lng],
+    });
+  };
+
+  const fetchOverwritePrice = async (lat: bigint, lng: bigint) => {
+    if (!publicClient) return 0n;
+    try {
+      const price = await publicClient.readContract({
+        address: CONTRACT_ADDRESSES.celoPlace,
+        abi: CELOPLACE_ABI,
+        functionName: "getOverwritePrice",
+        args: [lat, lng],
+      });
+      return price as bigint;
+    } catch (e) {
+      console.error("Failed to fetch overwrite price", e);
+      return 0n;
+    }
+  };
+
+  const placePixel = async (latEnc: bigint, lngEnc: bigint, colorHex: string, value: bigint) => {
     const cleanHex = colorHex.replace("#", "");
     const colorInt = parseInt(cleanHex, 16);
 
@@ -71,6 +115,7 @@ export function usePixelCanvas() {
       abi: CELOPLACE_ABI,
       functionName: "paintPixel",
       args: [latEnc, lngEnc, colorInt],
+      value,
     });
 
     queryClient.invalidateQueries({ queryKey: ["pixel-logs"] });
@@ -83,7 +128,10 @@ export function usePixelCanvas() {
     isLoadingPixels,
     fetchAllPixels,
     getPixel,
-    getRemainingPixels,
+    getTierInfo,
+    getBaseCharges,
+    getOverwritePrice,
+    fetchOverwritePrice,
     placePixel,
     isWriting,
   };

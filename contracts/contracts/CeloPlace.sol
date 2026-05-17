@@ -179,7 +179,7 @@ contract CeloPlace {
             // Virgin pixel or Self-overwrite
             if (msg.value < VIRGIN_FEE) revert InsufficientFee();
             
-            (bool s1, ) = treasury.call{value: VIRGIN_FEE}("");
+            (bool s1, ) = rewardPool.call{value: VIRGIN_FEE}("");
             if (!s1) revert TransferFailed();
             
             // refund excess

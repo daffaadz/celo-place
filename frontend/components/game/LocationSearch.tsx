@@ -7,10 +7,11 @@ import { useState } from "react";
 interface LocationSearchProps {
   onSearch: (lat: number, lng: number) => void;
   mapMode?: string;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
-export default function LocationSearch({ onSearch, mapMode = "dark" }: LocationSearchProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function LocationSearch({ onSearch, mapMode = "dark", isOpen, onToggle }: LocationSearchProps) {
   const [latInput, setLatInput] = useState("");
   const [lngInput, setLngInput] = useState("");
 
@@ -30,7 +31,7 @@ export default function LocationSearch({ onSearch, mapMode = "dark" }: LocationS
     <div className="relative">
       {/* Toggle Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={onToggle}
         className={cn(
           "w-10 h-10 rounded-xl flex items-center justify-center pointer-events-auto transition-transform hover:scale-105 shadow-md border",
           isLight 

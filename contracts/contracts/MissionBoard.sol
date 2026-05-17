@@ -2,22 +2,54 @@
 pragma solidity 0.8.20;
 
 interface ICeloPlace {
+    struct Pixel {
+        address painter;
+        uint24 color;
+        uint256 timestamp;
+        uint256 paintCount;
+    }
+
     function grantBonusCharges(address user, uint256 amount) external;
     function currentStreak(address user) external view returns (uint256);
     function chargesUsedToday(address user, uint256 day) external view returns (uint256);
+    function lastPaintTimestamp(address user, uint256 day) external view returns (uint256);
+    function getTierCharges(address user) external view returns (uint256);
+    function getPixel(int256 lat, int256 lng) external view returns (Pixel memory);
 }
 
 contract MissionBoard {
     address public owner;
     ICeloPlace public celoPlace;
     
-    uint256 public constant REWARD_AMOUNT = 0.5 ether;
-    uint256 public constant BONUS_CHARGES = 2;
+    uint256 public constant TOTAL_MISSION_TYPES = 6;
     
-    mapping(uint256 => mapping(address => bool)) public hasCompletedMission;
+    // Mission Types
+    uint8 public constant EARLY_BIRD = 0;
+    uint8 public constant FULL_CHARGES = 1;
+    uint8 public constant NEIGHBOR = 2;
+    uint8 public constant CONTESTED = 3;
+    uint8 public constant PIONEER = 4;
+    uint8 public constant STREAK_KEEPER = 5;
+
+    // Slot Rewards
+    uint256 public constant SLOT1_REWARD = 0.5 ether;
+    uint256 public constant SLOT2_REWARD = 1.0 ether;
+    uint256 public constant SLOT3_REWARD = 2.0 ether;
     
-    event MissionCompleted(uint256 day, address indexed user, uint256 reward, uint256 bonusCharges);
+    // day => user => slot (0, 1, 2) => bool
+    mapping(uint256 => mapping(address => bool[3])) public missionCompleted;
     
+    // day => slot => completers
+    mapping(uint256 => address[]) public slot1Completers;
+    mapping(uint256 => address[]) public slot2Completers;
+    
+    // Slot 3 is a race, max 3 completers
+    mapping(uint256 => address[3]) public slot3TopCompleters;
+    mapping(uint256 => uint256) public slot3CompletionCount;
+    
+    event MissionCompleted(uint256 day, address indexed user, uint8 slot, uint256 reward);
+    event AllMissionsCompleted(uint256 day, address indexed user, uint256 bonusCharges);
+
     constructor(address _celoPlace) {
         owner = msg.sender;
         celoPlace = ICeloPlace(_celoPlace);
@@ -25,49 +57,119 @@ contract MissionBoard {
     
     receive() external payable {}
     
-    // Deterministic random mission per day based on day index
-    function getDailyMission(uint256 day) public pure returns (uint256 targetType, uint256 targetValue) {
-        uint256 rand = uint256(keccak256(abi.encodePacked("CELO_MISSION_SEED", day)));
-        targetType = rand % 2; // 0 = Paint X pixels, 1 = Reach X streak
+    function getMissionsToday() external view returns (uint8[3] memory types, uint256[3] memory rewards, uint256 slot3SpotsLeft) {
+        uint256 currentDay = block.timestamp / 1 days;
         
-        if (targetType == 0) {
-            targetValue = (rand % 3) + 3; // Paint 3 to 5 pixels
+        bytes32 dailySeed = keccak256(abi.encodePacked(currentDay)); // using just currentDay for simplicity and deterministic behaviour across blocks today
+        
+        types[0] = uint8(dailySeed[0]) % uint8(TOTAL_MISSION_TYPES);
+        types[1] = uint8(dailySeed[1]) % uint8(TOTAL_MISSION_TYPES);
+        types[2] = uint8(dailySeed[2]) % uint8(TOTAL_MISSION_TYPES);
+        
+        rewards[0] = SLOT1_REWARD;
+        rewards[1] = SLOT2_REWARD;
+        rewards[2] = SLOT3_REWARD;
+        
+        slot3SpotsLeft = 3 - slot3CompletionCount[currentDay];
+    }
+    
+    function completeMission(uint8 slot, bytes calldata proof) external {
+        require(slot < 3, "Invalid slot");
+        uint256 currentDay = block.timestamp / 1 days;
+        require(!missionCompleted[currentDay][msg.sender][slot], "Already completed this mission today");
+        
+        bytes32 dailySeed = keccak256(abi.encodePacked(currentDay));
+        uint8 mType = uint8(dailySeed[slot]) % uint8(TOTAL_MISSION_TYPES);
+        
+        _verifyMission(mType, proof, currentDay);
+        
+        missionCompleted[currentDay][msg.sender][slot] = true;
+        
+        uint256 rewardToSend = 0;
+        
+        if (slot == 0) {
+            slot1Completers[currentDay].push(msg.sender);
+            rewardToSend = SLOT1_REWARD;
+        } else if (slot == 1) {
+            slot2Completers[currentDay].push(msg.sender);
+            rewardToSend = SLOT2_REWARD;
+        } else if (slot == 2) {
+            uint256 count = slot3CompletionCount[currentDay];
+            require(count < 3, "Slot 3 race already won");
+            slot3TopCompleters[currentDay][count] = msg.sender;
+            slot3CompletionCount[currentDay] = count + 1;
+            rewardToSend = SLOT3_REWARD;
+        }
+        
+        // Dispense reward
+        if (rewardToSend > 0 && address(this).balance >= rewardToSend) {
+            (bool s, ) = msg.sender.call{value: rewardToSend}("");
+            require(s, "Transfer failed");
         } else {
-            targetValue = (rand % 3) + 2; // Streak of 2 to 4
+            rewardToSend = 0; // Did not send
+        }
+        
+        emit MissionCompleted(currentDay, msg.sender, slot, rewardToSend);
+        
+        // Check if all 3 are completed
+        if (missionCompleted[currentDay][msg.sender][0] && 
+            missionCompleted[currentDay][msg.sender][1] && 
+            missionCompleted[currentDay][msg.sender][2]) {
+            celoPlace.grantBonusCharges(msg.sender, 2);
+            emit AllMissionsCompleted(currentDay, msg.sender, 2);
         }
     }
     
-    function getTodayMission() external view returns (uint256 targetType, uint256 targetValue, bool completed) {
-        uint256 currentDay = block.timestamp / 1 days;
-        (targetType, targetValue) = getDailyMission(currentDay);
-        completed = hasCompletedMission[currentDay][msg.sender];
-    }
-    
-    function completeMission() external {
-        uint256 currentDay = block.timestamp / 1 days;
-        require(!hasCompletedMission[currentDay][msg.sender], "Already completed today");
-        
-        (uint256 mType, uint256 mValue) = getDailyMission(currentDay);
-        
-        if (mType == 0) {
-            require(celoPlace.chargesUsedToday(msg.sender, currentDay) >= mValue, "Not enough pixels painted today");
-        } else if (mType == 1) {
-            require(celoPlace.currentStreak(msg.sender) >= mValue, "Streak not high enough");
+    function _verifyMission(uint8 mType, bytes calldata proof, uint256 currentDay) internal view {
+        if (mType == EARLY_BIRD) {
+            uint256 todayStart = currentDay * 1 days;
+            uint256 lastPaint = celoPlace.lastPaintTimestamp(msg.sender, currentDay);
+            require(lastPaint > 0 && lastPaint < todayStart + 8 hours, "Not an early bird");
+            
+        } else if (mType == FULL_CHARGES) {
+            uint256 used = celoPlace.chargesUsedToday(msg.sender, currentDay);
+            uint256 tierCharges = celoPlace.getTierCharges(msg.sender);
+            require(used >= tierCharges && tierCharges > 0, "Charges not fully used");
+            
+        } else if (mType == NEIGHBOR) {
+            // proof contains: myLat, myLng, neighborLat, neighborLng
+            require(proof.length == 128, "Invalid proof length for NEIGHBOR");
+            (int256 myLat, int256 myLng, int256 nLat, int256 nLng) = abi.decode(proof, (int256, int256, int256, int256));
+            
+            // Check adjacency (scale 1e4: roughly 1 unit diff is allowed, but let's assume they are adjacent if diff is small)
+            // Or exact +/- 1 based on map coordinates. We will check max distance.
+            // Using abs difference
+            int256 diffLat = myLat > nLat ? myLat - nLat : nLat - myLat;
+            int256 diffLng = myLng > nLng ? myLng - nLng : nLng - myLng;
+            require(diffLat <= 1 && diffLng <= 1 && (diffLat > 0 || diffLng > 0), "Not neighbors");
+            
+            ICeloPlace.Pixel memory myPixel = celoPlace.getPixel(myLat, myLng);
+            require(myPixel.painter == msg.sender, "You don't own the source pixel");
+            
+            ICeloPlace.Pixel memory nPixel = celoPlace.getPixel(nLat, nLng);
+            require(nPixel.painter != address(0) && nPixel.painter != msg.sender, "Neighbor is empty or owned by you");
+            
+        } else if (mType == CONTESTED) {
+            require(proof.length == 64, "Invalid proof length for CONTESTED");
+            (int256 lat, int256 lng) = abi.decode(proof, (int256, int256));
+            ICeloPlace.Pixel memory p = celoPlace.getPixel(lat, lng);
+            require(p.painter == msg.sender, "You don't own this pixel");
+            require(p.paintCount >= 3, "Pixel is not contested enough");
+            
+        } else if (mType == PIONEER) {
+            require(proof.length == 64, "Invalid proof length for PIONEER");
+            (int256 lat, int256 lng) = abi.decode(proof, (int256, int256));
+            ICeloPlace.Pixel memory p = celoPlace.getPixel(lat, lng);
+            require(p.painter == msg.sender, "You don't own this pixel");
+            require(p.paintCount == 1, "Pixel is not a pioneer pixel");
+            
+        } else if (mType == STREAK_KEEPER) {
+            uint256 streak = celoPlace.currentStreak(msg.sender);
+            require(streak >= 7, "Streak is less than 7");
+            uint256 used = celoPlace.chargesUsedToday(msg.sender, currentDay);
+            require(used > 0, "Must paint today to keep streak");
+        } else {
+            revert("Unknown mission type");
         }
-        
-        hasCompletedMission[currentDay][msg.sender] = true;
-        
-        // Grant bonus charges back on the main contract
-        celoPlace.grantBonusCharges(msg.sender, BONUS_CHARGES);
-        
-        // Dispense CELO reward if pool has balance
-        uint256 dispensed = 0;
-        if (address(this).balance >= REWARD_AMOUNT) {
-            dispensed = REWARD_AMOUNT;
-            (bool s,) = msg.sender.call{value: dispensed}("");
-            require(s, "Reward transfer failed");
-        }
-        
-        emit MissionCompleted(currentDay, msg.sender, dispensed, BONUS_CHARGES);
     }
 }

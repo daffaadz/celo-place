@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAccount, useConnect, useDisconnect, useSwitchChain, useBalance } from "wagmi";
 import { metaMask } from "wagmi/connectors";
 import { useRouter } from "next/navigation";
@@ -11,6 +12,7 @@ interface WalletButtonProps {
 }
 
 export default function WalletButton({ variant = "hero" }: WalletButtonProps) {
+  const [mounted, setMounted] = useState(false);
   const { address, isConnected, chain } = useAccount();
   const { connect } = useConnect();
   const { disconnect } = useDisconnect();
@@ -18,11 +20,13 @@ export default function WalletButton({ variant = "hero" }: WalletButtonProps) {
   const { data: balance } = useBalance({ address });
   const router = useRouter();
 
+  useEffect(() => setMounted(true), []);
+
   const handleConnect = () => {
     connect({ connector: metaMask() });
   };
 
-  if (!isConnected) {
+  if (!mounted || !isConnected) {
     return (
       <button
         onClick={handleConnect}
