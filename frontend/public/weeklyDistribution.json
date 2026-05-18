@@ -1,5 +1,10 @@
 {
-  "root": "0x0000000000000000000000000000000000000000000000000000000000000000",
-  "totalDistribution": "0",
-  "claims": {}
+  "root": "0x347651cb7e5df714fd3dad816a451c38357d6647fb2927bb95ea4a5c086a6782",
+  "totalDistribution": "4200000000000000",
+  "claims": {
+    "0x44A4d35Ad6560C674ee3058ea05f8fFfB800C85a": {
+      "amount": "4200000000000000",
+      "proof": []
+    }
+  }
 }

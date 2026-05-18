@@ -1,9 +1,9 @@
 {
-  "celoPlace": "0x503cD4f5302DcF1C0d4a99C66cC759282f2Ac8f0",
-  "celoChat": "0xc4B1da675B63DEdfd4e55fC0bed2061836692Bc3",
-  "rewardPool": "0x544DF6eCb025FDB2602286425Cfd02b2918255dD",
-  "missionBoard": "0x8dce91A926566A391cD1D75a7Bd048318B68A261",
+  "celoPlace": "0x48551a794b9407fd3B6286A90540B4F4a66D8529",
+  "celoChat": "0xcc9D0B524a2CCf855F70eA1C7D0833ba2Dc1bAa6",
+  "rewardPool": "0x2205E00c1dE89caD0586f632219f432612af38c3",
+  "missionBoard": "0xB09ff32D0f9bc2daD6Cc69743870225fC4b7b1f8",
   "network": "celoSepolia",
   "chainId": 11142220,
-  "deployedAt": "2026-05-16T18:01:58.450Z"
+  "deployedAt": "2026-05-18T13:31:02.540Z"
 }

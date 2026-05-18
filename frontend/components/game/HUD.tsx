@@ -9,6 +9,7 @@ import { StreakDisplay, EconomyStats } from "./EconomyStats";
 import { useEffect, useState } from "react";
 import { Loader2, Wallet } from "lucide-react";
 import { MissionBoard } from "./MissionBoard";
+import { RewardClaimPanel } from "./RewardClaimPanel";
 
 interface HUDProps {
   selectedColor: string;
@@ -114,8 +115,9 @@ export default function HUD({ selectedColor, onSelectColor, onSearchLocation, ma
       <div className="flex flex-col items-end gap-3 pointer-events-auto">
         <WalletButton variant="hud" />
         {address && (
-          <div className="flex flex-col gap-2 w-full max-w-[200px]">
+          <div className="flex flex-col gap-2 w-full max-w-[220px]">
             <EconomyStats isLight={isLight} />
+            <RewardClaimPanel isLight={isLight} />
             <button
               onClick={onOpenEconomy}
               className={`w-full py-2 px-3 flex items-center justify-center gap-2 rounded-lg font-bold text-sm shadow-md transition-all hover:scale-105 active:scale-95 ${isLight ? 'bg-celo-yellow text-black hover:bg-[#e5d100]' : 'bg-celo-yellow text-black hover:brightness-110'}`}

@@ -157,26 +157,67 @@ function MissionCard({ slot, type, reward, spotsLeft, isLight, currentDay, onCom
 
   const handleClaim = async () => {
     try {
-      let proof = "0x";
-      // In a real app, proof would be generated dynamically based on the mission type requirements
-      // For this hackathon scope, we'll send a dummy proof and rely on the contract reverting if conditions aren't met
-      if (type === 2) { // NEIGHBOR needs 128 bytes
-        proof = "0x000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-      } else if (type === 3 || type === 4) { // CONTESTED, PIONEER needs 64 bytes
-        proof = "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+      let proof = "0x" as `0x${string}`;
+      
+      const pixels = queryClient.getQueryData<{lat: number, lng: number, painter: string}[]>(["pixel-logs"]) || [];
+      const userPixels = pixels.filter((p) => p.painter.toLowerCase() === address?.toLowerCase());
+
+      if (type === 2) { // NEIGHBOR
+        // Find a user pixel that has a neighbor
+        let found = false;
+        for (const up of userPixels) {
+          const neighbor = pixels.find((p) => 
+            p.painter.toLowerCase() !== address?.toLowerCase() &&
+            Math.abs(p.lat - up.lat) <= 1 && Math.abs(p.lng - up.lng) <= 1 &&
+            (p.lat !== up.lat || p.lng !== up.lng)
+          );
+          if (neighbor) {
+            const { encodeAbiParameters, parseAbiParameters } = await import('viem');
+            proof = encodeAbiParameters(
+              parseAbiParameters('int256, int256, int256, int256'),
+              [BigInt(up.lat), BigInt(up.lng), BigInt(neighbor.lat), BigInt(neighbor.lng)]
+            );
+            found = true;
+            break;
+          }
+        }
+        if (!found) throw new Error("Could not find neighbor valid pixel");
+
+      } else if (type === 3 || type === 4) { // CONTESTED, PIONEER
+        // Pioneer: paintCount == 1; Contested: paintCount >= 3
+        let validUp = null;
+        for (const up of userPixels) {
+          const paintCount = pixels.filter(p => p.lat === up.lat && p.lng === up.lng).length;
+          if (type === 4 && paintCount === 1) { // PIONEER
+             validUp = up; break;
+          }
+          if (type === 3 && paintCount >= 3) { // CONTESTED
+             validUp = up; break;
+          }
+        }
+
+        if (validUp) {
+          const { encodeAbiParameters, parseAbiParameters } = await import('viem');
+          proof = encodeAbiParameters(
+            parseAbiParameters('int256, int256'),
+            [BigInt(validUp.lat), BigInt(validUp.lng)]
+          );
+        } else {
+          throw new Error("No qualifying pixel found for proof");
+        }
       }
 
       await writeContractAsync({
         address: CONTRACT_ADDRESSES.missionBoard,
         abi: MISSIONBOARD_ABI,
         functionName: 'completeMission',
-        args: [slot, proof as `0x${string}`]
+        args: [slot, proof]
       });
       refetchCompleted();
       onComplete();
       queryClient.invalidateQueries({ queryKey: ["pixel-logs"] });
     } catch (e: unknown) {
-      alert("Mission requirement not met yet!");
+      alert("Mission requirement not met yet or proof generation failed!");
       console.error(e);
     }
   };

@@ -42,3 +42,5 @@ export const OverwritePriceTooltip = React.forwardRef<HTMLDivElement, TooltipPro
     );
   }
 );
+
+OverwritePriceTooltip.displayName = "OverwritePriceTooltip";
