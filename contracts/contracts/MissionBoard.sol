@@ -57,14 +57,21 @@ contract MissionBoard {
     
     receive() external payable {}
     
-    function getMissionsToday() external view returns (uint8[3] memory types, uint256[3] memory rewards, uint256 slot3SpotsLeft) {
+    function getMissionsToday() public view returns (uint8[3] memory types, uint256[3] memory rewards, uint256 slot3SpotsLeft) {
         uint256 currentDay = block.timestamp / 1 days;
+        bytes32 seed = keccak256(abi.encodePacked("Missions", currentDay));
         
-        bytes32 dailySeed = keccak256(abi.encodePacked(currentDay)); // using just currentDay for simplicity and deterministic behaviour across blocks today
+        uint8[6] memory pool = [0,1,2,3,4,5];
         
-        types[0] = uint8(dailySeed[0]) % uint8(TOTAL_MISSION_TYPES);
-        types[1] = uint8(dailySeed[1]) % uint8(TOTAL_MISSION_TYPES);
-        types[2] = uint8(dailySeed[2]) % uint8(TOTAL_MISSION_TYPES);
+        for (uint i = 0; i < 3; i++) {
+            uint idx = i + (uint8(seed[i]) % (TOTAL_MISSION_TYPES - i));
+            
+            uint8 temp = pool[i];
+            pool[i] = pool[idx];
+            pool[idx] = temp;
+            
+            types[i] = pool[i];
+        }
         
         rewards[0] = SLOT1_REWARD;
         rewards[1] = SLOT2_REWARD;
@@ -78,8 +85,8 @@ contract MissionBoard {
         uint256 currentDay = block.timestamp / 1 days;
         require(!missionCompleted[currentDay][msg.sender][slot], "Already completed this mission today");
         
-        bytes32 dailySeed = keccak256(abi.encodePacked(currentDay));
-        uint8 mType = uint8(dailySeed[slot]) % uint8(TOTAL_MISSION_TYPES);
+        (uint8[3] memory types, , ) = getMissionsToday();
+        uint8 mType = types[slot];
         
         _verifyMission(mType, proof, currentDay);
         

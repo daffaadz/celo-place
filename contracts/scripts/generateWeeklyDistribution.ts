@@ -11,7 +11,7 @@ async function main() {
     const addresses = JSON.parse(fs.readFileSync(addressesPath, "utf-8"));
 
     const celoPlace = CeloPlace.attach(addresses.celoPlace);
-    const rewardPool = RewardPool.attach(addresses.RewardPool);
+    const rewardPool = RewardPool.attach(addresses.rewardPool);
 
     console.log("Fetching past pixel paints...");
     // Ideally filter by timestamp, but we just grab all for hackathon simplicity
@@ -44,8 +44,8 @@ async function main() {
 
     console.log(`Total paints this week: ${totalPaints}`);
 
-    // Get weekly pool balance
-    const weeklyPoolBalance = await ethers.provider.getBalance(await rewardPool.getAddress());
+    // Get weekly pool balance from contract state
+    const weeklyPoolBalance = await rewardPool.weeklyPoolBalance();
     console.log(`Weekly Pool Balance: ${ethers.formatEther(weeklyPoolBalance)} CELO`);
 
     // Prepare Merkle Tree values
