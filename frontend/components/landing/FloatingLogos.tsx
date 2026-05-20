@@ -17,39 +17,60 @@ export default function FloatingLogos() {
   const [logos, setLogos] = useState<LogoConfig[]>([]);
 
   useEffect(() => {
-    // Generate between 15 and 25 logos
-    const count = Math.floor(Math.random() * 11) + 15;
+    const targetCount = Math.floor(Math.random() * 6) + 15; // 15 to 20
     const newLogos: LogoConfig[] = [];
+    const maxAttempts = 200;
+    
+    // Distance threshold in percentage. ~12% is usually enough to avoid overlaps
+    // for logos that are 80-250px large.
+    const minDistance = 12;
 
-    for (let i = 0; i < count; i++) {
-      const size = Math.floor(Math.random() * 170) + 80; 
-      const opacity = (size / 250) * 0.4; 
-      
-      // Determine Y position distribution
-      // 40% chance for top (0-30%)
-      // 40% chance for bottom (70-95%)
-      // 20% chance for middle (30-70%)
+    for (let i = 0; i < maxAttempts; i++) {
+      if (newLogos.length >= targetCount) break;
+
       const roll = Math.random();
       let y;
       if (roll < 0.4) {
         y = Math.random() * 30; // Top
       } else if (roll < 0.8) {
-        y = Math.random() * 25 + 70; // Bottom (70 to 95)
+        y = Math.random() * 25 + 70; // Bottom
       } else {
-        y = Math.random() * 40 + 30; // Middle (30 to 70)
+        y = Math.random() * 40 + 30; // Middle
+      }
+      
+      const x = Math.random() * 90;
+
+      // Check for overlap
+      let hasOverlap = false;
+      for (const existing of newLogos) {
+        const dx = existing.x - x;
+        // Adjust Y distance slightly because screens are usually wider than tall
+        const dy = (existing.y - y) * 1.5; 
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < minDistance) {
+          hasOverlap = true;
+          break;
+        }
       }
 
-      newLogos.push({
-        id: i,
-        x: Math.random() * 90, 
-        y, 
-        size,
-        rotation: Math.random() * 45,
-        opacity,
-        delay: Math.random() * 5,
-        duration: Math.random() * 4 + 6,
-      });
+      if (!hasOverlap) {
+        const size = Math.floor(Math.random() * 150) + 70; // 70px to 220px
+        const opacity = (size / 220) * 0.35; // slightly lower opacity overall
+        
+        newLogos.push({
+          id: newLogos.length,
+          x,
+          y,
+          size,
+          rotation: Math.random() * 45,
+          opacity,
+          delay: Math.random() * 5,
+          duration: Math.random() * 4 + 6,
+        });
+      }
     }
+    
     setLogos(newLogos);
   }, []);
 
