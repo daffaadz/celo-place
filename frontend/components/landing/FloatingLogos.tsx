@@ -17,25 +17,37 @@ export default function FloatingLogos() {
   const [logos, setLogos] = useState<LogoConfig[]>([]);
 
   useEffect(() => {
-    // Generate between 10 and 20 logos
-    const count = Math.floor(Math.random() * 11) + 10;
+    // Generate between 15 and 25 logos
+    const count = Math.floor(Math.random() * 11) + 15;
     const newLogos: LogoConfig[] = [];
 
     for (let i = 0; i < count; i++) {
-      const size = Math.floor(Math.random() * 170) + 80; // 80px to 250px
-      // Opacity based on size: smaller = more transparent
+      const size = Math.floor(Math.random() * 170) + 80; 
       const opacity = (size / 250) * 0.4; 
       
+      // Determine Y position distribution
+      // 40% chance for top (0-30%)
+      // 40% chance for bottom (70-95%)
+      // 20% chance for middle (30-70%)
+      const roll = Math.random();
+      let y;
+      if (roll < 0.4) {
+        y = Math.random() * 30; // Top
+      } else if (roll < 0.8) {
+        y = Math.random() * 25 + 70; // Bottom (70 to 95)
+      } else {
+        y = Math.random() * 40 + 30; // Middle (30 to 70)
+      }
+
       newLogos.push({
         id: i,
-        // Using up to 90% to avoid extreme edge clipping while allowing wide coverage
-        x: Math.random() * 95, 
-        y: Math.random() * 95, 
+        x: Math.random() * 90, 
+        y, 
         size,
-        rotation: Math.random() * 45, // 0 to 45 degrees
+        rotation: Math.random() * 45,
         opacity,
-        delay: Math.random() * 5, // 0s to 5s delay
-        duration: Math.random() * 4 + 6, // 6s to 10s float cycle
+        delay: Math.random() * 5,
+        duration: Math.random() * 4 + 6,
       });
     }
     setLogos(newLogos);
