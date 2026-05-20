@@ -55,7 +55,12 @@ export default function HUD({ selectedColor, onSelectColor, onSearchLocation, ma
       <div className="flex flex-col gap-2">
         {/* Branding / Info Box */}
         <div className={`backdrop-blur-xl border rounded-2xl p-3 flex flex-col gap-1 pointer-events-auto transition-colors shadow-md ${isLight ? 'bg-white/90 border-black/20' : 'bg-black/80 border-white/[0.15]'}`}>
-          <img src="/logo.png" alt="CeloPlace" className="h-7 w-auto drop-shadow-md" />
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Logo" className="h-6 w-auto drop-shadow-md" />
+            <h1 className={`text-lg font-black drop-shadow-[0_0_0.65px_rgba(0,0,0,1)] ${isLight ? 'text-black' : 'text-white'}`}>
+              Celo<span className="text-celo-yellow drop-shadow-[0_0_0.65px_rgba(0,0,0,1)]">Place</span>
+            </h1>
+          </div>
           <div className="text-xs flex items-center gap-2 mt-1">
             <span className={isLight ? "text-gray-600 font-medium" : "text-text-secondary"}>Remaining Pixels:</span>
             {loadingTier ? (

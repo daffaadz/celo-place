@@ -8,12 +8,13 @@ export default function Hero() {
           <span className="w-2 h-2 rounded-full bg-celo-green animate-pulse" />
           Live on Celo Sepolia
         </div>
-        <div className="mb-8 flex flex-col items-center justify-center gap-6">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white/90">
-            Welcome to
-          </h1>
-          <img src="/logo.png" alt="CeloPlace" className="h-20 md:h-28 w-auto drop-shadow-2xl" />
-        </div>
+        <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tight text-white flex flex-col md:flex-row items-center justify-center gap-4">
+          Welcome to 
+          <span className="flex items-center gap-2">
+             <img src="/logo.png" alt="Logo" className="h-12 md:h-16 w-auto inline-block drop-shadow-lg" />
+             <span className="text-celo-yellow">CeloPlace</span>
+          </span>
+        </h1>
         <p className="text-lg md:text-xl text-text-secondary max-w-2xl mb-10">
           A decentralized, collaborative digital canvas on the Celo blockchain. 
           Connect your wallet, leave your mark, and be part of web3 history.
