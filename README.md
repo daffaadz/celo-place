@@ -7,7 +7,7 @@ Draw pixels, claim rewards from the community pool, and chat with other painters
 ---
 
 ## 🚀 Live Demo
-- **Vercel**: [Will be updated after deployment]
+- **Vercel**: [https://celo-place.vercel.app/](https://celo-place.vercel.app/)
 - **Network**: Celo Sepolia (Testnet)
 
 ## 🛠 Features
