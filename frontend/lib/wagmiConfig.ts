@@ -1,6 +1,6 @@
 import { createConfig, http } from 'wagmi';
 import { defineChain } from 'viem';
-import { metaMask } from 'wagmi/connectors';
+import { metaMask, walletConnect } from 'wagmi/connectors';
 
 export const celoSepolia = defineChain({
   id: 11142220,
@@ -42,6 +42,10 @@ export const config = createConfig({
         name: 'Celo Place',
         url: 'http://localhost:3000',
       }
+    }),
+    walletConnect({
+      projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '6781457753c100ea5a2ed86ddb6c037c',
+      showQrModal: true,
     }),
   ],
   transports: {
