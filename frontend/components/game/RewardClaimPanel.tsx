@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { CONTRACT_ADDRESSES, REWARDPOOL_ABI } from '@/lib/contracts';
-import { Loader2, Check } from 'lucide-react';
+import { SpinnerGap, Check, Trophy } from '@phosphor-icons/react';
 import { formatEther } from 'viem';
 
 interface RewardClaimPanelProps {
@@ -90,7 +90,8 @@ export function RewardClaimPanel({ isLight = false }: RewardClaimPanelProps) {
         onClick={() => setMinimized(false)}
         className={`w-full py-2 px-3 flex items-center justify-center gap-2 rounded-lg font-bold text-sm shadow-md transition-all hover:scale-105 active:scale-95 border ${isLight ? 'bg-white border-black/20 text-black hover:bg-gray-50' : 'bg-[#111] border-white/20 text-white hover:bg-[#222]'}`}
       >
-        🏆 {success ? "Reward Claimed" : "Weekly Reward"}
+        <Trophy weight="fill" className="w-4 h-4 text-celo-yellow" />
+        {success ? "Reward Claimed" : "Weekly Reward"}
       </button>
     );
   }
@@ -111,7 +112,8 @@ export function RewardClaimPanel({ isLight = false }: RewardClaimPanelProps) {
         <>
           <button onClick={() => setMinimized(true)} className="absolute top-1 right-2 text-gray-500 hover:text-gray-300">✕</button>
           <h2 className="text-sm font-bold mb-1 flex items-center gap-2">
-            🏆 Weekly Reward
+            <Trophy weight="fill" className="w-4 h-4 text-celo-yellow" />
+            Weekly Reward
           </h2>
           <p className={`text-xs mb-3 leading-tight pr-2 ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
             Territory held last week earned: <strong className={isLight ? 'text-black' : 'text-celo-yellow'}>{displayAmount} CELO</strong>
@@ -123,7 +125,7 @@ export function RewardClaimPanel({ isLight = false }: RewardClaimPanelProps) {
               ${(isPending || isZero || hasClaimed) ? 'opacity-50 cursor-not-allowed filter grayscale' : 'hover:scale-105 active:scale-95'}
               ${isLight ? 'bg-celo-yellow text-black hover:bg-[#e5d100]' : 'bg-celo-yellow text-black hover:brightness-110'}`}
           >
-            {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isPending && <SpinnerGap className="w-4 h-4 animate-spin" />}
             {hasClaimed ? "Already Claimed" : `Claim ${displayAmount} CELO`}
           </button>
         </>

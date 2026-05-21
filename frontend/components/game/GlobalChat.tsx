@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useGlobalChat } from "@/hooks/useGlobalChat";
-import { MessageSquare, Send, Coins, Loader2, X } from "lucide-react";
+import { Chat, PaperPlaneRight, Coins, SpinnerGap, X } from "@phosphor-icons/react";
 import { cn, truncateAddress, timeAgo } from "@/lib/utils";
 import { useAccount } from "wagmi";
 
@@ -60,7 +60,7 @@ export default function GlobalChat({ mapMode = "dark" }: { mapMode?: string }) {
           onClick={() => setIsOpen(true)}
           className="absolute bottom-6 right-6 z-[1000] bg-celo-green text-black w-14 h-14 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(0,255,0,0.3)] hover:scale-105 transition-transform pointer-events-auto"
         >
-          <MessageSquare className="w-6 h-6" />
+          <Chat className="w-6 h-6" />
         </button>
       )}
 
@@ -75,7 +75,7 @@ export default function GlobalChat({ mapMode = "dark" }: { mapMode?: string }) {
           isLight ? "border-black/5 bg-gray-50/50" : "border-white/[0.1] bg-white/[0.02]"
         )}>
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-celo-green" />
+            <Chat className="w-5 h-5 text-celo-green" />
             <h3 className="font-bold">Global Chat</h3>
           </div>
           <button 
@@ -89,7 +89,7 @@ export default function GlobalChat({ mapMode = "dark" }: { mapMode?: string }) {
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {isLoading ? (
             <div className="flex justify-center items-center h-full">
-              <Loader2 className="w-6 h-6 animate-spin text-celo-green" />
+              <SpinnerGap className="w-6 h-6 animate-spin text-celo-green" />
             </div>
           ) : messages.length === 0 ? (
             <div className={cn("text-center text-sm mt-10", isLight ? "text-gray-400" : "text-text-secondary")}>No messages yet. Be the first!</div>
@@ -134,7 +134,7 @@ export default function GlobalChat({ mapMode = "dark" }: { mapMode?: string }) {
                           isLight ? "text-celo-green font-semibold" : "text-celo-yellow"
                         )}
                       >
-                        <Coins size={10} /> Tip
+                        <Coins size={10} weight="fill" /> Tip
                       </button>
                     </div>
                   )}
@@ -166,7 +166,7 @@ export default function GlobalChat({ mapMode = "dark" }: { mapMode?: string }) {
               disabled={isWriting || !msgInput.trim()}
               className="bg-celo-green text-black px-4 py-2 rounded-lg font-bold hover:brightness-110 disabled:opacity-50 transition-colors flex items-center justify-center min-w-[48px]"
             >
-              {isWriting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              {isWriting ? <SpinnerGap size={16} className="animate-spin" /> : <PaperPlaneRight size={16} />}
             </button>
           </div>
         </form>

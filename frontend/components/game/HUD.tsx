@@ -7,7 +7,7 @@ import LocationSearch from "./LocationSearch";
 import { usePixelCanvas } from "@/hooks/usePixelCanvas";
 import { StreakDisplay, EconomyStats } from "./EconomyStats";
 import { useEffect, useState } from "react";
-import { Loader2, Wallet } from "lucide-react";
+import { SpinnerGap, Wallet } from "@phosphor-icons/react";
 import { MissionBoard } from "./MissionBoard";
 import { RewardClaimPanel } from "./RewardClaimPanel";
 
@@ -64,7 +64,7 @@ export default function HUD({ selectedColor, onSelectColor, onSearchLocation, ma
           <div className="text-xs flex items-center gap-2 mt-1">
             <span className={isLight ? "text-gray-600 font-medium" : "text-text-secondary"}>Remaining Pixels:</span>
             {loadingTier ? (
-              <Loader2 className="w-3 h-3 animate-spin text-celo-green" />
+              <SpinnerGap className="w-3 h-3 animate-spin text-celo-green" />
             ) : (
               <span className={`font-mono px-1.5 py-[1px] rounded font-semibold ${isLight ? 'bg-black/10 text-black' : 'bg-white/10 text-white'}`}>
                 {remaining !== undefined ? remaining : 3}/{denominator}

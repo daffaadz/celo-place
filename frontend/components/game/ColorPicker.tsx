@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Palette, X } from "lucide-react";
+import { Check, Palette, X } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 

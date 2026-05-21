@@ -5,7 +5,7 @@ import { useAccount, useConnect, useDisconnect, useSwitchChain, useBalance } fro
 import { metaMask } from "wagmi/connectors";
 import { useRouter } from "next/navigation";
 import { cn, truncateAddress } from "@/lib/utils";
-import { LogOut } from "lucide-react";
+import { SignOut } from "@phosphor-icons/react";
 
 interface WalletButtonProps {
   variant?: "hero" | "hud";
@@ -40,14 +40,14 @@ export default function WalletButton({ variant = "hero" }: WalletButtonProps) {
     );
   }
 
-  // 11142220 is Celo Sepolia
-  if (chain?.id !== 11142220) {
+  // 42220 is Celo Mainnet
+  if (chain?.id !== 42220) {
     if (variant === "hero") {
       return (
         <div className="flex flex-col items-center gap-2">
-          <p className="text-sm text-red-400">Please switch to Celo Sepolia</p>
+          <p className="text-sm text-red-400">Please switch to Celo Mainnet</p>
           <button
-            onClick={() => switchChain({ chainId: 11142220 })}
+            onClick={() => switchChain({ chainId: 42220 })}
             className="border border-white/10 text-text-primary px-6 py-3 rounded-xl hover:bg-white/[0.04] transition-all duration-200"
           >
             Switch Network
@@ -62,10 +62,10 @@ export default function WalletButton({ variant = "hero" }: WalletButtonProps) {
           Wrong network
         </div>
         <button
-          onClick={() => switchChain({ chainId: 11142220 })}
+          onClick={() => switchChain({ chainId: 42220 })}
           className="border border-white/10 text-text-primary px-4 py-2 rounded-xl hover:bg-white/[0.04] transition-all duration-200 text-sm bg-black/50 backdrop-blur-md"
         >
-          Switch to Celo Sepolia
+          Switch to Celo Mainnet
         </button>
       </div>
     );
@@ -99,7 +99,7 @@ export default function WalletButton({ variant = "hero" }: WalletButtonProps) {
         className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-text-secondary hover:text-white"
         title="Disconnect"
       >
-        <LogOut size={16} />
+        <SignOut size={16} />
       </button>
     </div>
   );

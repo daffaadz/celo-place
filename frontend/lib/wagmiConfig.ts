@@ -35,12 +35,12 @@ export const celoMainnet = defineChain({
 });
 
 export const config = createConfig({
-  chains: [celoSepolia, celoMainnet],
+  chains: [celoMainnet],
   connectors: [
     metaMask({
       dappMetadata: {
         name: 'Celo Place',
-        url: 'http://localhost:3000',
+        url: 'https://celoplace.com',
       }
     }),
     walletConnect({
@@ -49,7 +49,6 @@ export const config = createConfig({
     }),
   ],
   transports: {
-    [celoSepolia.id]: http(),
     [celoMainnet.id]: http(),
   },
 });

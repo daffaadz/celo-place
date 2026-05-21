@@ -3,7 +3,7 @@
 import { useAccount } from "wagmi";
 import WalletButton from "./WalletButton";
 import { useEffect, useState } from "react";
-import { Paintbrush } from "lucide-react";
+import { PaintBrush } from "@phosphor-icons/react";
 
 export default function NetworkGuard({ children }: { children: React.ReactNode }) {
   const { isConnected, chain } = useAccount();
@@ -20,7 +20,7 @@ export default function NetworkGuard({ children }: { children: React.ReactNode }
     return (
       <div className="w-full h-screen flex flex-col items-center justify-center bg-bg-base text-center p-4">
         <div className="w-20 h-20 bg-celo-yellow/10 rounded-3xl flex items-center justify-center mb-6 border border-celo-yellow/20">
-          <Paintbrush className="w-10 h-10 text-celo-yellow" />
+          <PaintBrush className="w-10 h-10 text-celo-yellow" />
         </div>
         <h1 className="text-3xl font-black text-white mb-4">Connect Your Wallet</h1>
         <p className="text-text-secondary max-w-md mb-8">
@@ -31,7 +31,7 @@ export default function NetworkGuard({ children }: { children: React.ReactNode }
     );
   }
 
-  if (chain?.id !== 11142220) {
+  if (chain?.id !== 42220) {
     return (
       <div className="w-full h-screen flex flex-col items-center justify-center bg-bg-base text-center p-4">
         <div className="w-20 h-20 bg-red-500/10 rounded-3xl flex items-center justify-center mb-6 border border-red-500/20">
@@ -41,7 +41,7 @@ export default function NetworkGuard({ children }: { children: React.ReactNode }
         </div>
         <h1 className="text-3xl font-black text-white mb-4">Wrong Network</h1>
         <p className="text-text-secondary max-w-md mb-8">
-          CeloPlace runs on the Celo Sepolia testnet. Please switch networks in your wallet to continue.
+          CeloPlace runs on the Celo Mainnet. Please switch networks in your wallet to continue.
         </p>
         <WalletButton variant="hero" />
       </div>

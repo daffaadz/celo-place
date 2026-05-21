@@ -2,7 +2,7 @@
 import { useAccount, useReadContract, useBalance } from "wagmi";
 import { CONTRACT_ADDRESSES, CELOPLACE_ABI } from "@/lib/contracts";
 import { formatEther } from "viem";
-import { Flame, Trophy } from "lucide-react";
+import { Fire, Trophy } from "@phosphor-icons/react";
 import { usePixelCanvas } from "@/hooks/usePixelCanvas";
 
 interface EconomyStatsProps {
@@ -28,7 +28,7 @@ export function StreakDisplay({ isLight = false }: EconomyStatsProps) {
   return (
     <div className={`p-2 flex items-center space-x-2 backdrop-blur-xl border rounded-xl shadow-sm transition-colors ${isLight ? 'bg-white/80 border-black/10 text-black' : 'bg-black/60 border-white/10 text-white'}`}>
       <div className={`p-1.5 rounded-lg ${isLight ? 'bg-orange-100 text-orange-500' : 'bg-orange-500/20 text-orange-400'}`}>
-        <Flame className="w-5 h-5" />
+        <Fire weight="fill" className="w-5 h-5" />
       </div>
       <div className="flex flex-col">
         <div className="font-bold text-sm">Day {streak}</div>
@@ -62,7 +62,7 @@ export function EconomyStats({ isLight = false }: EconomyStatsProps) {
     <div className={`p-3 w-full flex flex-col space-y-2 backdrop-blur-xl border rounded-lg shadow-sm transition-colors ${isLight ? 'bg-white/90 border-black/10 text-black' : 'bg-black/80 border-white/10 text-white'}`}>
       <div className="flex justify-between items-center border-b pb-1.5 border-white/10">
         <span className={`text-[10px] font-semibold tracking-wider uppercase opacity-80 flex justify-center items-center gap-1.5 ${isLight ? 'text-black' : 'text-celo-yellow'}`}>
-          <Trophy className="w-3 h-3" /> Top Painters
+          <Trophy weight="fill" className="w-3 h-3" /> Top Painters
         </span>
         <span className={`text-[10px] font-mono font-bold ${isLight ? 'text-green-700' : 'text-celo-green'}`}>{pBal} CELO</span>
       </div>

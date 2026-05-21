@@ -1,4 +1,6 @@
-import { X, Trophy, Coins, Zap } from "lucide-react";
+"use client";
+
+import { X, Trophy, Coins, Lightning } from "@phosphor-icons/react";
 
 interface EconomyModalProps {
   onClose: () => void;
@@ -20,7 +22,7 @@ export default function EconomyModal({ onClose, isLight }: EconomyModalProps) {
 
         <div className="flex flex-col gap-4">
           <div className={`p-4 rounded-xl border flex gap-4 ${isLight ? 'bg-gray-50 border-black/10' : 'bg-black/50 border-white/10'}`}>
-            <Coins className="w-8 h-8 text-celo-yellow shrink-0" />
+            <Coins weight="fill" className="w-8 h-8 text-celo-yellow shrink-0" />
             <div>
               <h3 className="font-bold mb-1">Weekly Reward Pool</h3>
               <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
@@ -30,7 +32,7 @@ export default function EconomyModal({ onClose, isLight }: EconomyModalProps) {
           </div>
 
           <div className={`p-4 rounded-xl border flex gap-4 ${isLight ? 'bg-gray-50 border-black/10' : 'bg-black/50 border-white/10'}`}>
-            <Trophy className="w-8 h-8 text-celo-green shrink-0" />
+            <Trophy weight="fill" className="w-8 h-8 text-celo-green shrink-0" />
             <div>
               <h3 className="font-bold mb-1">Daily Missions</h3>
               <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
@@ -40,7 +42,7 @@ export default function EconomyModal({ onClose, isLight }: EconomyModalProps) {
           </div>
 
           <div className={`p-4 rounded-xl border flex gap-4 ${isLight ? 'bg-gray-50 border-black/10' : 'bg-black/50 border-white/10'}`}>
-            <Zap className="w-8 h-8 text-orange-500 shrink-0" />
+            <Lightning weight="fill" className="w-8 h-8 text-orange-500 shrink-0" />
             <div>
               <h3 className="font-bold mb-1">Streak & Charges</h3>
               <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>

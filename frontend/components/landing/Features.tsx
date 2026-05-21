@@ -1,20 +1,22 @@
-import { Paintbrush, Zap, MessageSquare } from "lucide-react";
+"use client";
+
+import { PaintBrush, Lightning, Chat } from "@phosphor-icons/react";
 
 const features = [
   {
-    icon: <Paintbrush className="w-6 h-6 text-celo-green" />,
+    icon: <PaintBrush className="w-6 h-6 text-celo-green" />,
     title: "Global Canvas",
     description: "Paint pixels on a massive collaborative canvas. Every pixel is permanently stored on the Celo blockchain.",
     bg: "bg-celo-green/10",
   },
   {
-    icon: <Zap className="w-6 h-6 text-celo-yellow" />,
+    icon: <Lightning className="w-6 h-6 text-celo-yellow" />,
     title: "Fast & Cheap",
     description: "Built on Celo for ultra-fast transactions with fractions of a cent in gas fees per pixel.",
     bg: "bg-celo-yellow/10",
   },
   {
-    icon: <MessageSquare className="w-6 h-6 text-gray-400" />,
+    icon: <Chat className="w-6 h-6 text-gray-400" />,
     title: "On-Chain Chat",
     description: "Talk to other painters in real-time. Verify messages and even tip fellow artists directly on-chain.",
     bg: "bg-white/5",
