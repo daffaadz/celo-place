@@ -1,4 +1,6 @@
-import { X, Trophy, Coins, Zap } from "lucide-react";
+"use client";
+
+import { X, Trophy, Coins, Lightning } from "@phosphor-icons/react";
 
 interface EconomyModalProps {
   onClose: () => void;
@@ -6,47 +8,52 @@ interface EconomyModalProps {
 }
 
 export default function EconomyModal({ onClose, isLight }: EconomyModalProps) {
+  const bg = isLight ? "bg-white border-black/10" : "bg-[#12121A] border-white/[0.08]";
+  const text = isLight ? "text-black" : "text-text-primary";
+  const sub = isLight ? "text-gray-500" : "text-text-secondary";
+
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center pointer-events-auto bg-black/50 backdrop-blur-sm">
-      <div className={`relative w-full max-w-md p-6 rounded-2xl shadow-2xl ${isLight ? 'bg-white text-black' : 'bg-[#0f0f0f] text-white border border-white/10'}`}>
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className={`relative rounded-2xl border p-6 max-w-md w-full shadow-2xl ${bg}`}>
         <button
           onClick={onClose}
-          className={`absolute top-4 right-4 p-2 rounded-lg transition-colors ${isLight ? 'hover:bg-black/5' : 'hover:bg-white/10'}`}
+          className={`absolute top-4 right-4 p-1.5 rounded-lg transition-colors ${isLight ? "hover:bg-black/5" : "hover:bg-white/5"}`}
         >
-          <X size={24} />
+          <X weight="bold" className={`w-4 h-4 ${sub}`} />
         </button>
 
-        <h1 className="text-2xl font-black mb-6">Cplace hub</h1>
+        <h2 className={`text-base font-black mb-4 ${text}`}>Economy Overview</h2>
 
-        <div className="flex flex-col gap-4">
-          <div className={`p-4 rounded-xl border flex gap-4 ${isLight ? 'bg-gray-50 border-black/10' : 'bg-black/50 border-white/10'}`}>
-            <Coins className="w-8 h-8 text-celo-yellow shrink-0" />
-            <div>
-              <h3 className="font-bold mb-1">Weekly Reward Pool</h3>
-              <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
-                Every pixel painted adds to the Weekly Pool. At the end of the week, the top painters share the pool proportional to the pixels they held!
-              </p>
+        <div className="space-y-4">
+          <div className={`p-4 rounded-xl border ${isLight ? "bg-gray-50 border-black/5" : "bg-white/[0.03] border-white/[0.06]"}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Lightning weight="fill" className="w-4 h-4 text-[var(--accent-warm)]" />
+              <span className={`text-sm font-bold ${text}`}>Overwrite Pricing</span>
             </div>
+            <p className={`text-xs leading-relaxed ${sub}`}>
+              Overwriting a pixel costs an exponentially increasing fee. The first overwrite is cheap, but each subsequent overwrite of the same pixel costs more. This creates a natural ownership economy.
+            </p>
           </div>
 
-          <div className={`p-4 rounded-xl border flex gap-4 ${isLight ? 'bg-gray-50 border-black/10' : 'bg-black/50 border-white/10'}`}>
-            <Trophy className="w-8 h-8 text-celo-green shrink-0" />
-            <div>
-              <h3 className="font-bold mb-1">Daily Missions</h3>
-              <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
-                Check the Missions tab on the right side of your screen. Complete daily tasks to earn CELO rewards directly to your wallet!
-              </p>
+          <div className={`p-4 rounded-xl border ${isLight ? "bg-gray-50 border-black/5" : "bg-white/[0.03] border-white/[0.06]"}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Coins weight="fill" className="w-4 h-4 text-[var(--accent-secondary)]" />
+              <span className={`text-sm font-bold ${text}`}>Reward Pool</span>
             </div>
+            <p className={`text-xs leading-relaxed ${sub}`}>
+              20% of every overwrite fee goes to the community Reward Pool. Active painters can claim their share based on participation. Distributions happen weekly.
+            </p>
           </div>
 
-          <div className={`p-4 rounded-xl border flex gap-4 ${isLight ? 'bg-gray-50 border-black/10' : 'bg-black/50 border-white/10'}`}>
-            <Zap className="w-8 h-8 text-orange-500 shrink-0" />
-            <div>
-              <h3 className="font-bold mb-1">Streak & Charges</h3>
-              <p className={`text-sm ${isLight ? 'text-gray-600' : 'text-gray-400'}`}>
-                Paint every day to build your streak. Higher streaks give you more free charges per day (up to 8 charges). If you complete all 3 daily missions, you get +2 bonus charges tomorrow!
-              </p>
+          <div className={`p-4 rounded-xl border ${isLight ? "bg-gray-50 border-black/5" : "bg-white/[0.03] border-white/[0.06]"}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy weight="fill" className="w-4 h-4 text-[var(--accent-primary)]" />
+              <span className={`text-sm font-bold ${text}`}>Missions & Streaks</span>
             </div>
+            <p className={`text-xs leading-relaxed ${sub}`}>
+              Complete daily painting missions to earn bonus pixel charges. Build streaks to unlock multipliers. Check the Mission Board (⭐) to see your objectives.
+            </p>
           </div>
         </div>
       </div>

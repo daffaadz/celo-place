@@ -1,9 +1,9 @@
-﻿'use client';
+'use client';
 import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { CONTRACT_ADDRESSES, REWARDPOOL_ABI } from '@/lib/contracts';
-import { Loader2, Check } from 'lucide-react';
+import { SpinnerGap, Check } from '@phosphor-icons/react';
 import { formatEther } from 'viem';
 
 interface RewardClaimPanelProps {
@@ -123,7 +123,7 @@ export function RewardClaimPanel({ isLight = false }: RewardClaimPanelProps) {
               ${(isPending || isZero || hasClaimed) ? 'opacity-50 cursor-not-allowed filter grayscale' : 'hover:scale-105 active:scale-95'}
               ${isLight ? 'bg-celo-yellow text-black hover:bg-[#e5d100]' : 'bg-celo-yellow text-black hover:brightness-110'}`}
           >
-            {isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+            {isPending && <SpinnerGap className="w-4 h-4 animate-spin" />}
             {hasClaimed ? "Already Claimed" : `Claim ${displayAmount} CELO`}
           </button>
         </>

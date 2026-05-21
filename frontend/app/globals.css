@@ -2,30 +2,113 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 :root {
   /* Backgrounds */
-  --bg-base: #08090a;
-  --bg-surface: #111214;
-  --bg-elevated: #1a1b1e;
+  --bg-base: #0A0A0F;
+  --bg-surface: #12121A;
+  --bg-elevated: #1A1A25;
 
   /* Borders */
-  --border-subtle: #1f2023;
-  --border-default: #2a2b2f;
+  --border-subtle: #1E1E2A;
+  --border-default: #2A2A3A;
 
-  /* Brand */
-  --celo-yellow: #FCFF52;
-  --celo-yellow-dim: #fcff5218;
+  /* Brand Accents */
+  --accent-primary: #E44CFF;
+  --accent-primary-dim: #E44CFF18;
+  --accent-secondary: #00F0FF;
+  --accent-secondary-dim: #00F0FF18;
+  --accent-warm: #FFD93D;
+  --accent-warm-dim: #FFD93D18;
+
+  /* Legacy Celo (for on-chain status only) */
   --celo-green: #35D07F;
   --celo-green-dim: #35d07f18;
-  --celo-green-darker: #35d07f50;
+  --celo-yellow: #FCFF52;
+  --celo-yellow-dim: #fcff5218;
 
   /* Text */
-  --text-primary: #f0f0f0;
-  --text-secondary: #8a8f98;
-  --text-muted: #4a4f5a;
+  --text-primary: #E8E8ED;
+  --text-secondary: #6B6B7B;
+  --text-muted: #3A3A4A;
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-primary);
+  color: #fff;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-primary);
 }
 
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
+}
+
+/* Pixel border utility */
+.pixel-border {
+  box-shadow:
+    inset -2px -2px 0px 0px var(--border-default),
+    inset 2px 2px 0px 0px rgba(255,255,255,0.05);
+  border: 2px solid var(--border-subtle);
+}
+
+.pixel-border-accent {
+  box-shadow:
+    inset -2px -2px 0px 0px rgba(228, 76, 255, 0.3),
+    inset 2px 2px 0px 0px rgba(228, 76, 255, 0.1);
+  border: 2px solid var(--accent-primary);
+}
+
+/* Glow effects */
+.glow-primary {
+  box-shadow: 0 0 20px rgba(228, 76, 255, 0.3), 0 0 60px rgba(228, 76, 255, 0.1);
+}
+
+.glow-secondary {
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), 0 0 60px rgba(0, 240, 255, 0.1);
+}
+
+/* Scan line overlay */
+.scan-lines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Pixel grid background */
+.pixel-grid {
+  background-image:
+    linear-gradient(rgba(228, 76, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(228, 76, 255, 0.03) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Font classes */
+.font-pixel {
+  font-family: 'Press Start 2P', monospace;
 }
