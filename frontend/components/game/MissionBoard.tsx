@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract } from 'wagmi';
 import { useQueryClient } from '@tanstack/react-query';
 import { CONTRACT_ADDRESSES, MISSIONBOARD_ABI } from '@/lib/contracts';
-import { SpinnerGap, Star, Check, X } from '@phosphor-icons/react';
+import { Loader2, CircleStar, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatEther } from 'viem';
 
@@ -85,7 +85,7 @@ export function MissionBoard({ isLight = false, isOpen, onToggle }: MissionBoard
             : (isOpen ? "bg-celo-yellow border-white/20 text-black" : "bg-black/80 border-white/20 text-white backdrop-blur-md")
         )}
       >
-        {isOpen ? <X size={20} /> : <Star size={20} />}
+        {isOpen ? <X size={20} /> : <CircleStar size={20} />}
       </button>
 
       {/* Slide-out Mission Panel */}
@@ -99,7 +99,7 @@ export function MissionBoard({ isLight = false, isOpen, onToggle }: MissionBoard
         )}>
           <div className={`p-3 border-b flex justify-between items-center ${isLight ? 'border-black/10' : 'border-white/10'}`}>
             <h2 className="font-bold flex items-center gap-1.5">
-              <Star weight="fill" className="w-4 h-4 text-[var(--accent-warm)]" />
+              <CircleStar className="w-4 h-4 text-celo-yellow" />
               Daily Missions
             </h2>
           </div>
@@ -248,7 +248,7 @@ function MissionCard({ slot, type, reward, spotsLeft, isLight, currentDay, onCom
               (spotsLeft !== null && spotsLeft === 0) ? 'bg-gray-500/20 text-gray-500 cursor-not-allowed' :
                 isLight ? 'bg-black text-white hover:bg-gray-800' : 'bg-white text-black hover:bg-gray-200'}`}
         >
-          {isPending ? <SpinnerGap className="w-3 h-3 animate-spin" /> : isCompleted ? <Check className="w-3 h-3" /> : 'Claim'}
+          {isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : isCompleted ? <Check className="w-3 h-3" /> : 'Claim'}
         </button>
       </div>
     </div>

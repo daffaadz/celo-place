@@ -8,7 +8,7 @@ Draw pixels, claim rewards from the community pool, and chat with other painters
 
 ## 🚀 Live Demo
 - **Vercel**: [https://celo-place.vercel.app/](https://celo-place.vercel.app/)
-- **Network**: Celo Mainnet
+- **Network**: Celo Sepolia (Testnet)
 
 ## 🛠 Features
 - **Interactive Map Canvas**: A dynamic slippy map where players can pan, zoom, and draw.
@@ -18,14 +18,14 @@ Draw pixels, claim rewards from the community pool, and chat with other painters
 - **Mission Board**: Complete daily painting missions to earn bonus charges!
 - **Tipping Chat**: Send messages to the global chat and tip helpful players directly.
 
-## 🔗 Smart Contracts (Celo Mainnet)
-- **CeloPlace**: [0x1Ba28d59AD81615055881436152Bbe63B6a445Ef](https://celoscan.io/address/0x1Ba28d59AD81615055881436152Bbe63B6a445Ef)
-- **CeloChat**: [0x3661E8697d5b907aab651E7549207a67A618373e](https://celoscan.io/address/0x3661E8697d5b907aab651E7549207a67A618373e)
-- **RewardPool**: [0xA228DF897d3811902Fa1A5fa57eE0FAdf2F009FF](https://celoscan.io/address/0xA228DF897d3811902Fa1A5fa57eE0FAdf2F009FF)
-- **MissionBoard**: [0x4aD0f914d38fDA639C0aa98754c58A8121639C7f](https://celoscan.io/address/0x4aD0f914d38fDA639C0aa98754c58A8121639C7f)
+## 🔗 Smart Contracts (Celo Sepolia Testnet)
+- **CeloPlace**: [0x48551a794b9407fd3B6286A90540B4F4a66D8529](https://alfajores.celoscan.io/address/0x48551a794b9407fd3B6286A90540B4F4a66D8529)
+- **CeloChat**: [0xcc9D0B524a2CCf855F70eA1C7D0833ba2Dc1bAa6](https://alfajores.celoscan.io/address/0xcc9D0B524a2CCf855F70eA1C7D0833ba2Dc1bAa6)
+- **RewardPool**: [0x2205E00c1dE89caD0586f632219f432612af38c3](https://alfajores.celoscan.io/address/0x2205E00c1dE89caD0586f632219f432612af38c3)
+- **MissionBoard**: [0xB09ff32D0f9bc2daD6Cc69743870225fC4b7b1f8](https://alfajores.celoscan.io/address/0xB09ff32D0f9bc2daD6Cc69743870225fC4b7b1f8)
 
 ## 💻 Tech Stack
-- **Frontend**: Next.js 14, React, Tailwind CSS, Leaflet, Wagmi, Viem
+- **Frontend**: Next.js 14, React, Tailwind CSS, Leaflet, Wagmi, Viem, RainbowKit
 - **Smart Contracts**: Solidity, Hardhat
 - **Deployment**: Vercel
 
@@ -39,7 +39,7 @@ Draw pixels, claim rewards from the community pool, and chat with other painters
 ## 🏃‍♂️ Running Locally
 ```bash
 # Clone the repository
-git clone https://github.com/daffaadz/celo-place.git
+git clone https://github.com/Daffaadz/celo-place.git
 cd celo-place/frontend
 
 # Install dependencies

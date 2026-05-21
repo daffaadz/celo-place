@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, MagnifyingGlass, X } from "@phosphor-icons/react";
+import { MapPin, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -39,7 +39,7 @@ export default function LocationSearch({ onSearch, mapMode = "dark", isOpen, onT
             : (isOpen ? "bg-celo-yellow border-white/20 text-black" : "bg-black/80 border-white/20 text-white backdrop-blur-md")
         )}
       >
-        {isOpen ? <X size={20} /> : <MagnifyingGlass size={20} />}
+        {isOpen ? <X size={20} /> : <Search size={20} />}
       </button>
 
       {/* Slide-out Search Panel */}

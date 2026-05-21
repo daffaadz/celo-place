@@ -2,7 +2,7 @@
 import { useAccount, useReadContract, useBalance } from "wagmi";
 import { CONTRACT_ADDRESSES, CELOPLACE_ABI } from "@/lib/contracts";
 import { formatEther } from "viem";
-import { Fire, Trophy } from "@phosphor-icons/react";
+import { Flame, Trophy } from "lucide-react";
 import { usePixelCanvas } from "@/hooks/usePixelCanvas";
 
 interface EconomyStatsProps {
@@ -28,7 +28,7 @@ export function StreakDisplay({ isLight = false }: EconomyStatsProps) {
   return (
     <div className={`p-2 flex items-center space-x-2 backdrop-blur-xl border rounded-xl shadow-sm transition-colors ${isLight ? 'bg-white/80 border-black/10 text-black' : 'bg-black/60 border-white/10 text-white'}`}>
       <div className={`p-1.5 rounded-lg ${isLight ? 'bg-orange-100 text-orange-500' : 'bg-orange-500/20 text-orange-400'}`}>
-        <Fire className="w-5 h-5" />
+        <Flame className="w-5 h-5" />
       </div>
       <div className="flex flex-col">
         <div className="font-bold text-sm">Day {streak}</div>
