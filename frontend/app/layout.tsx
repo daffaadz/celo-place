@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   },
   other: {
     // Note: Please replace the string below with your full verification hash if it is cut off!
-    "talentapp:project_verification": "7168fae0f1634122841d5258c5dcc72c72ef273c5ca0e42ba0ffbbcec6a82a8cfef2c76e020f81417754ed46ddba10badc54fc4d3",
+    "talentapp:project_verification": "7168fae0f1634122841d5258c5dcc72c72ef273c5ca0e42ba0ffbbcec6a82a8cfef2c76e020f81417754ed46ddba10badc54fc4d321cf7bc62d9eae372548781",
   }
 };
 
