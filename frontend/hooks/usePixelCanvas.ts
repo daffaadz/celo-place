@@ -2,7 +2,7 @@ import { useReadContract, useWriteContract, usePublicClient } from "wagmi";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CONTRACT_ADDRESSES, CELOPLACE_ABI } from "@/lib/contracts";
 import { parseAbiItem } from "viem";
-import { decodeCoord, uint24ToHex } from "@/lib/utils";
+import { decodeCoord, uint24ToHex, encodeCoord } from "@/lib/utils";
 
 export type PixelData = {
   lat: number;
@@ -11,6 +11,10 @@ export type PixelData = {
   painter: string;
   timestamp: number;
 };
+
+// Approximate block number at contract deployment (Celo Mainnet, ~2026-05-21)
+// Celo produces ~1 block/5s. ~38.2M blocks by deployment date.
+const DEPLOY_FROM_BLOCK = 38_200_000n;
 
 export function usePixelCanvas() {
   const { writeContractAsync, isPending: isWriting } = useWriteContract();
@@ -25,7 +29,7 @@ export function usePixelCanvas() {
         const logs = await publicClient.getLogs({
           address: CONTRACT_ADDRESSES.celoPlace,
           event: parseAbiItem("event PixelPainted(address indexed painter, int256 lat, int256 lng, uint24 color, uint256 timestamp)"),
-          fromBlock: 0n,
+          fromBlock: DEPLOY_FROM_BLOCK,
           toBlock: "latest",
         });
 
@@ -45,7 +49,8 @@ export function usePixelCanvas() {
         return [];
       }
     },
-    refetchInterval: 10000,
+    refetchInterval: 15000,
+    staleTime: 5000,
   });
 
   const getPixel = (lat: bigint, lng: bigint) => {
@@ -106,7 +111,17 @@ export function usePixelCanvas() {
     }
   };
 
-  const placePixel = async (latEnc: bigint, lngEnc: bigint, colorHex: string, value: bigint) => {
+  /**
+   * Place a pixel on the canvas.
+   * Waits for transaction receipt before invalidating queries so that
+   * the newly painted pixel's event is actually available on-chain.
+   */
+  const placePixel = async (
+    latEnc: bigint,
+    lngEnc: bigint,
+    colorHex: string,
+    value: bigint
+  ): Promise<{ txHash: `0x${string}`; optimisticPixel: PixelData }> => {
     const cleanHex = colorHex.replace("#", "");
     const colorInt = parseInt(cleanHex, 16);
 
@@ -118,9 +133,32 @@ export function usePixelCanvas() {
       value,
     });
 
-    queryClient.invalidateQueries({ queryKey: ["pixel-logs"] });
+    // Build optimistic pixel so canvas can show it immediately
+    const optimisticPixel: PixelData = {
+      lat: decodeCoord(latEnc),
+      lng: decodeCoord(lngEnc),
+      color: colorHex,
+      painter: "", // filled in by caller if address available
+      timestamp: Math.floor(Date.now() / 1000),
+    };
 
-    return txHash;
+    // Wait for confirmation before refreshing pixel list
+    if (publicClient) {
+      await publicClient.waitForTransactionReceipt({ hash: txHash });
+    }
+
+    // Invalidate queries after confirmation — events are now on-chain
+    queryClient.invalidateQueries({ queryKey: ["pixel-logs"] });
+    
+    // Invalidate Wagmi useReadContract queries (e.g. getTierInfo, getTierCharges)
+    queryClient.invalidateQueries({
+      predicate: (query) => {
+        const key = query.queryKey;
+        return Array.isArray(key) && key.includes('readContract');
+      }
+    });
+
+    return { txHash, optimisticPixel };
   };
 
   return {

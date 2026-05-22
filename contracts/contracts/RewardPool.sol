@@ -40,7 +40,7 @@ contract RewardPool {
     
     receive() external payable {
         if (msg.value > 0) {
-            uint256 weeklyShare = (msg.value * 70) / 100;
+            uint256 weeklyShare = (msg.value * 50) / 100;
             uint256 missionShare = msg.value - weeklyShare;
             
             weeklyPoolBalance += weeklyShare;

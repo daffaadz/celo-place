@@ -3,7 +3,7 @@ import { useAccount, useReadContract, useBalance } from "wagmi";
 import { CONTRACT_ADDRESSES, CELOPLACE_ABI } from "@/lib/contracts";
 import { formatEther } from "viem";
 import { Fire, Trophy } from "@phosphor-icons/react";
-import { usePixelCanvas } from "@/hooks/usePixelCanvas";
+import { usePixelCanvas, PixelData } from "@/hooks/usePixelCanvas";
 
 interface EconomyStatsProps {
   isLight?: boolean;
@@ -47,12 +47,24 @@ export function EconomyStats({ isLight = false }: EconomyStatsProps) {
 
   const { pixels } = usePixelCanvas();
 
-  const userCounts = pixels.reduce((acc, p) => {
-    if (p.painter !== "0x0000000000000000000000000000000000000000") {
-      acc[p.painter] = (acc[p.painter] || 0) + 1;
+  // Build a map of the LATEST painter per coordinate (current ownership)
+  // This correctly represents territory held, not all-time paint events
+  const currentOwners = new Map<string, PixelData>();
+  pixels.forEach(p => {
+    const key = `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`;
+    const existing = currentOwners.get(key);
+    if (!existing || p.timestamp > existing.timestamp) {
+      currentOwners.set(key, p);
     }
-    return acc;
-  }, {} as Record<string, number>);
+  });
+
+  // Count pixels owned per address (only current ownership)
+  const userCounts: Record<string, number> = {};
+  currentOwners.forEach(p => {
+    if (p.painter && p.painter !== "0x0000000000000000000000000000000000000000") {
+      userCounts[p.painter] = (userCounts[p.painter] || 0) + 1;
+    }
+  });
 
   const topPainters = Object.entries(userCounts)
     .sort((a, b) => b[1] - a[1])

@@ -160,38 +160,53 @@ function MissionCard({ slot, type, reward, spotsLeft, isLight, currentDay, onCom
       let proof = "0x" as `0x${string}`;
       
       const pixels = queryClient.getQueryData<{lat: number, lng: number, painter: string}[]>(["pixel-logs"]) || [];
-      const userPixels = pixels.filter((p) => p.painter.toLowerCase() === address?.toLowerCase());
+      
+      // Calculate current ownership map
+      const currentOwners = new Map<string, {lat: number, lng: number, painter: string, paintCount: number}>();
+      pixels.forEach(p => {
+        const key = `${p.lat.toFixed(5)},${p.lng.toFixed(5)}`;
+        const existing = currentOwners.get(key);
+        if (!existing) {
+          currentOwners.set(key, { ...p, paintCount: 1 });
+        } else {
+          currentOwners.set(key, { ...p, paintCount: existing.paintCount + 1 });
+        }
+      });
+
+      const userPixels = Array.from(currentOwners.values()).filter((p) => p.painter.toLowerCase() === address?.toLowerCase());
+
+      const { encodeCoord } = await import('@/lib/utils');
+      const epsilon = 0.00001;
 
       if (type === 2) { // NEIGHBOR
-        // Find a user pixel that has a neighbor
         let found = false;
+        const allCurrentPixels = Array.from(currentOwners.values());
+        
         for (const up of userPixels) {
-          const neighbor = pixels.find((p) => 
+          const neighbor = allCurrentPixels.find((p) => 
             p.painter.toLowerCase() !== address?.toLowerCase() &&
-            Math.abs(p.lat - up.lat) <= 1 && Math.abs(p.lng - up.lng) <= 1 &&
-            (p.lat !== up.lat || p.lng !== up.lng)
+            Math.abs(p.lat - up.lat) <= 0.08001 && Math.abs(p.lng - up.lng) <= 0.08001 &&
+            !(Math.abs(p.lat - up.lat) < epsilon && Math.abs(p.lng - up.lng) < epsilon)
           );
           if (neighbor) {
             const { encodeAbiParameters, parseAbiParameters } = await import('viem');
             proof = encodeAbiParameters(
               parseAbiParameters('int256, int256, int256, int256'),
-              [BigInt(up.lat), BigInt(up.lng), BigInt(neighbor.lat), BigInt(neighbor.lng)]
+              [encodeCoord(up.lat), encodeCoord(up.lng), encodeCoord(neighbor.lat), encodeCoord(neighbor.lng)]
             );
             found = true;
             break;
           }
         }
-        if (!found) throw new Error("Could not find neighbor valid pixel");
+        if (!found) throw new Error("Could not find a valid neighbor pixel");
 
       } else if (type === 3 || type === 4) { // CONTESTED, PIONEER
-        // Pioneer: paintCount == 1; Contested: paintCount >= 3
         let validUp = null;
         for (const up of userPixels) {
-          const paintCount = pixels.filter(p => p.lat === up.lat && p.lng === up.lng).length;
-          if (type === 4 && paintCount === 1) { // PIONEER
+          if (type === 4 && up.paintCount === 1) { // PIONEER
              validUp = up; break;
           }
-          if (type === 3 && paintCount >= 3) { // CONTESTED
+          if (type === 3 && up.paintCount >= 3) { // CONTESTED
              validUp = up; break;
           }
         }
@@ -200,10 +215,10 @@ function MissionCard({ slot, type, reward, spotsLeft, isLight, currentDay, onCom
           const { encodeAbiParameters, parseAbiParameters } = await import('viem');
           proof = encodeAbiParameters(
             parseAbiParameters('int256, int256'),
-            [BigInt(validUp.lat), BigInt(validUp.lng)]
+            [encodeCoord(validUp.lat), encodeCoord(validUp.lng)]
           );
         } else {
-          throw new Error("No qualifying pixel found for proof");
+          throw new Error(`No qualifying pixel found for ${type === 4 ? 'Pioneer' : 'Contested'}`);
         }
       }
 
@@ -217,7 +232,8 @@ function MissionCard({ slot, type, reward, spotsLeft, isLight, currentDay, onCom
       onComplete();
       queryClient.invalidateQueries({ queryKey: ["pixel-logs"] });
     } catch (e: unknown) {
-      alert("Mission requirement not met yet or proof generation failed!");
+      const err = e as Error;
+      alert(`Mission requirement not met yet or proof generation failed!\nReason: ${err.message || 'Unknown'}`);
       console.error(e);
     }
   };

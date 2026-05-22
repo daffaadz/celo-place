@@ -1187,7 +1187,7 @@ export const MISSIONBOARD_ABI = [
   },
   {
     "inputs": [],
-    "name": "SLOT1_REWARD",
+    "name": "SLOT1_REWARD_BPS",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1200,7 +1200,7 @@ export const MISSIONBOARD_ABI = [
   },
   {
     "inputs": [],
-    "name": "SLOT2_REWARD",
+    "name": "SLOT2_REWARD_BPS",
     "outputs": [
       {
         "internalType": "uint256",
@@ -1213,7 +1213,7 @@ export const MISSIONBOARD_ABI = [
   },
   {
     "inputs": [],
-    "name": "SLOT3_REWARD",
+    "name": "SLOT3_REWARD_BPS",
     "outputs": [
       {
         "internalType": "uint256",

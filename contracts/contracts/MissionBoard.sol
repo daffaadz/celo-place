@@ -31,10 +31,13 @@ contract MissionBoard {
     uint8 public constant PIONEER = 4;
     uint8 public constant STREAK_KEEPER = 5;
 
-    // Slot Rewards
-    uint256 public constant SLOT1_REWARD = 0.5 ether;
-    uint256 public constant SLOT2_REWARD = 1.0 ether;
-    uint256 public constant SLOT3_REWARD = 2.0 ether;
+    // Slot reward percentages in basis points (10000 = 100%)
+    // Slot 1 (easy): 5% of contract balance per completer
+    // Slot 2 (medium): 10% of contract balance per completer
+    // Slot 3 (hard/race): 5% of contract balance per winner (max 3 winners)
+    uint256 public constant SLOT1_REWARD_BPS = 500;
+    uint256 public constant SLOT2_REWARD_BPS = 1000;
+    uint256 public constant SLOT3_REWARD_BPS = 500;
     
     // day => user => slot (0, 1, 2) => bool
     mapping(uint256 => mapping(address => bool[3])) public missionCompleted;
@@ -56,6 +59,12 @@ contract MissionBoard {
     }
     
     receive() external payable {}
+
+    /// @dev Calculate reward amount for a slot based on current contract balance
+    function _slotReward(uint256 bps) internal view returns (uint256) {
+        if (address(this).balance == 0) return 0;
+        return (address(this).balance * bps) / 10000;
+    }
     
     function getMissionsToday() public view returns (uint8[3] memory types, uint256[3] memory rewards, uint256 slot3SpotsLeft) {
         uint256 currentDay = block.timestamp / 1 days;
@@ -73,11 +82,13 @@ contract MissionBoard {
             types[i] = pool[i];
         }
         
-        rewards[0] = SLOT1_REWARD;
-        rewards[1] = SLOT2_REWARD;
-        rewards[2] = SLOT3_REWARD;
+        // Dynamic rewards based on current pool balance
+        rewards[0] = _slotReward(SLOT1_REWARD_BPS);
+        rewards[1] = _slotReward(SLOT2_REWARD_BPS);
+        rewards[2] = _slotReward(SLOT3_REWARD_BPS);
         
-        slot3SpotsLeft = 3 - slot3CompletionCount[currentDay];
+        uint256 completedCount = slot3CompletionCount[currentDay];
+        slot3SpotsLeft = completedCount >= 3 ? 0 : 3 - completedCount;
     }
     
     function completeMission(uint8 slot, bytes calldata proof) external {
@@ -96,29 +107,29 @@ contract MissionBoard {
         
         if (slot == 0) {
             slot1Completers[currentDay].push(msg.sender);
-            rewardToSend = SLOT1_REWARD;
+            rewardToSend = _slotReward(SLOT1_REWARD_BPS);
         } else if (slot == 1) {
             slot2Completers[currentDay].push(msg.sender);
-            rewardToSend = SLOT2_REWARD;
+            rewardToSend = _slotReward(SLOT2_REWARD_BPS);
         } else if (slot == 2) {
             uint256 count = slot3CompletionCount[currentDay];
             require(count < 3, "Slot 3 race already won");
             slot3TopCompleters[currentDay][count] = msg.sender;
             slot3CompletionCount[currentDay] = count + 1;
-            rewardToSend = SLOT3_REWARD;
+            rewardToSend = _slotReward(SLOT3_REWARD_BPS);
         }
         
-        // Dispense reward
+        // Dispense reward if available
         if (rewardToSend > 0 && address(this).balance >= rewardToSend) {
             (bool s, ) = msg.sender.call{value: rewardToSend}("");
             require(s, "Transfer failed");
         } else {
-            rewardToSend = 0; // Did not send
+            rewardToSend = 0; // Did not send (insufficient balance)
         }
         
         emit MissionCompleted(currentDay, msg.sender, slot, rewardToSend);
         
-        // Check if all 3 are completed
+        // Check if all 3 are completed — grant bonus charges
         if (missionCompleted[currentDay][msg.sender][0] && 
             missionCompleted[currentDay][msg.sender][1] && 
             missionCompleted[currentDay][msg.sender][2]) {
@@ -139,16 +150,15 @@ contract MissionBoard {
             require(used >= tierCharges && tierCharges > 0, "Charges not fully used");
             
         } else if (mType == NEIGHBOR) {
-            // proof contains: myLat, myLng, neighborLat, neighborLng
+            // proof contains: myLat, myLng, neighborLat, neighborLng (encoded as int256)
             require(proof.length == 128, "Invalid proof length for NEIGHBOR");
             (int256 myLat, int256 myLng, int256 nLat, int256 nLng) = abi.decode(proof, (int256, int256, int256, int256));
             
-            // Check adjacency (scale 1e4: roughly 1 unit diff is allowed, but let's assume they are adjacent if diff is small)
-            // Or exact +/- 1 based on map coordinates. We will check max distance.
-            // Using abs difference
+            // Check adjacency: coordinates are scaled by 1e4, so 1 unit = 0.0001 degrees
+            // Grid step is 0.08 degrees = 800 units. Adjacent cells differ by exactly 800.
             int256 diffLat = myLat > nLat ? myLat - nLat : nLat - myLat;
             int256 diffLng = myLng > nLng ? myLng - nLng : nLng - myLng;
-            require(diffLat <= 1 && diffLng <= 1 && (diffLat > 0 || diffLng > 0), "Not neighbors");
+            require(diffLat <= 800 && diffLng <= 800 && (diffLat > 0 || diffLng > 0), "Not neighbors");
             
             ICeloPlace.Pixel memory myPixel = celoPlace.getPixel(myLat, myLng);
             require(myPixel.painter == msg.sender, "You don't own the source pixel");

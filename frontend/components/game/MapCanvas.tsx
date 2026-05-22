@@ -38,9 +38,19 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
   const { placePixel, isWriting, pixels, isLoadingPixels, fetchAllPixels, fetchOverwritePrice } = usePixelCanvas();
   const { address } = useAccount();
 
+  // Optimistic pixel shown immediately after tx submit (before confirmation)
+  const [pendingPixel, setPendingPixel] = useState<PixelData | null>(null);
+  // Status shown while waiting for tx confirmation
+  const [txStatus, setTxStatus] = useState<"idle" | "submitting" | "confirming">("idle");
+
   const [hoveredPixel, setHoveredPixel] = useState<{ lat: number, lng: number, pixel?: PixelData, priceWei?: bigint } | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const pointerRef = useRef({ x: 0, y: 0 });
+
+  // Merge confirmed pixels with pending pixel for drawing
+  const allPixels = pendingPixel
+    ? [...pixels.filter(p => !(Math.abs(p.lat - pendingPixel.lat) < 0.00001 && Math.abs(p.lng - pendingPixel.lng) < 0.00001)), pendingPixel]
+    : pixels;
 
   const redrawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -57,7 +67,7 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
     const zoom = map.getZoom();
     const isLight = mapMode === "light";
 
-    // Draw grid if zoom >= 10 (higher threshold avoids lag when unzoomed)
+    // Draw grid if zoom >= 8
     if (zoom >= 8) {
       ctx.strokeStyle = isLight ? "rgba(0, 0, 0, 0.15)" : "rgba(255, 255, 255, 0.15)";
       ctx.lineWidth = 1;
@@ -83,8 +93,8 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
       ctx.stroke();
     }
 
-    // Draw all known pixels
-    pixels.forEach((p) => {
+    // Draw all confirmed pixels
+    allPixels.forEach((p) => {
       if (bounds.contains([p.lat, p.lng])) {
         const nw = map.latLngToContainerPoint([p.lat + STEP / 2, p.lng - STEP / 2]);
         const se = map.latLngToContainerPoint([p.lat - STEP / 2, p.lng + STEP / 2]);
@@ -92,10 +102,28 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
         const width = Math.max(1, Math.ceil(se.x - nw.x));
         const height = Math.max(1, Math.ceil(se.y - nw.y));
 
-        ctx.fillStyle = p.color;
-        ctx.fillRect(Math.floor(nw.x), Math.floor(nw.y), width, height);
+        // Draw pending pixel with reduced opacity + yellow border
+        const isPending = pendingPixel &&
+          Math.abs(p.lat - pendingPixel.lat) < 0.00001 &&
+          Math.abs(p.lng - pendingPixel.lng) < 0.00001;
+
+        if (isPending) {
+          ctx.globalAlpha = 0.6;
+          ctx.fillStyle = p.color;
+          ctx.fillRect(Math.floor(nw.x), Math.floor(nw.y), width, height);
+          ctx.globalAlpha = 1;
+          ctx.strokeStyle = "#FFD700";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(Math.floor(nw.x) + 1, Math.floor(nw.y) + 1, width - 2, height - 2);
+        } else {
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = p.color;
+          ctx.fillRect(Math.floor(nw.x), Math.floor(nw.y), width, height);
+        }
       }
     });
+
+    ctx.globalAlpha = 1;
 
     // Draw hovered tile fill
     if (hoveredPixel) {
@@ -108,7 +136,7 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
       ctx.fillRect(Math.floor(nw.x), Math.floor(nw.y), width, height);
     }
 
-  }, [map, pixels, mapMode, hoveredPixel]);
+  }, [map, allPixels, mapMode, hoveredPixel, pendingPixel]);
 
   useEffect(() => {
     map.on("move", redrawCanvas);
@@ -123,10 +151,9 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
 
   useMapEvents({
     click(e) {
-      if (!address || isWriting) return;
+      if (!address || isWriting || txStatus !== "idle") return;
       const snappedLat = snapCoordinate(e.latlng.lat);
       const snappedLng = snapCoordinate(e.latlng.lng);
-
       handleDraw(snappedLat, snappedLng);
     },
     mousemove(e) {
@@ -177,14 +204,33 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
 
   const handleDraw = async (lat: number, lng: number) => {
     try {
+      setTxStatus("submitting");
       const encLat = encodeCoord(lat);
       const encLng = encodeCoord(lng);
       const price = await fetchOverwritePrice(encLat, encLng);
+
+      // Show optimistic pixel immediately after MetaMask confirms
+      const optimisticPixel: PixelData = {
+        lat,
+        lng,
+        color: selectedColor,
+        painter: address || "",
+        timestamp: Math.floor(Date.now() / 1000),
+      };
+
+      setTxStatus("confirming");
+      setPendingPixel(optimisticPixel);
+
       await placePixel(encLat, encLng, selectedColor, price);
-      await fetchAllPixels();
+
+      // Transaction confirmed — clear pending pixel (blockchain data will replace it)
+      setPendingPixel(null);
+      setTxStatus("idle");
       redrawCanvas();
     } catch (err) {
       console.error("Failed to place pixel:", err);
+      setPendingPixel(null);
+      setTxStatus("idle");
     }
   };
 
@@ -210,6 +256,12 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[500] bg-black/80 text-celo-yellow px-4 py-2 rounded-full font-mono text-sm shadow-[0_0_10px_rgba(255,255,0,0.2)] border border-celo-yellow/20 flex items-center gap-2">
           <div className="w-3 h-3 border-2 border-celo-yellow border-t-transparent rounded-full animate-spin"></div>
           Restoring Canvas...
+        </div>
+      )}
+      {txStatus === "confirming" && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[500] bg-black/80 text-celo-green px-4 py-2 rounded-full font-mono text-sm shadow-[0_0_10px_rgba(0,255,0,0.2)] border border-celo-green/20 flex items-center gap-2">
+          <div className="w-3 h-3 border-2 border-celo-green border-t-transparent rounded-full animate-spin"></div>
+          Confirming on Celo Mainnet...
         </div>
       )}
       <canvas
@@ -254,7 +306,7 @@ export default function MapCanvas({ selectedColor, mapMode = "dark", flyToCoord 
         maxBoundsViscosity={1.0}
       >
         <TileLayer
-          attribution='&copy; OpenStreetMap & CARTO / Esri'
+          attribution='&copy; OpenStreetMap &amp; CARTO / Esri'
           url={tiles[mapMode]}
           subdomains="abcd"
           minZoom={1}
