@@ -207,7 +207,7 @@ function MapEventsAndCanvas({ selectedColor, mapMode = "dark", flyToCoord }: Map
   return (
     <>
       {isLoadingPixels && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[500] bg-black/80 text-celo-yellow px-4 py-2 rounded-full font-mono text-sm shadow-[0_0_10px_rgba(255,255,0,0.2)] border border-celo-yellow/20 flex items-center gap-2">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[500] bg-black/80 text-celo-yellow px-4 py-2 rounded-full font-mono text-sm shadow-[0_0_10px_rgba(255,255,0,0.2)] border border-celo-yellow/20 flex items-center gap-2">
           <div className="w-3 h-3 border-2 border-celo-yellow border-t-transparent rounded-full animate-spin"></div>
           Restoring Canvas...
         </div>

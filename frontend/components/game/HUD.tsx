@@ -105,7 +105,7 @@ export default function HUD({ selectedColor, onSelectColor, onSearchLocation, ma
 
       {/* Center HUD - Global Pixel Counter & Economy */}
       <div className="flex flex-col items-center gap-2 pointer-events-auto absolute left-1/2 -translate-x-1/2 top-4">
-        <div className={`backdrop-blur-xl border rounded-lg px-6 py-2 flex items-center gap-2 transition-colors shadow-lg ${isLight ? 'bg-white/80 border-black/10 text-black' : 'bg-black/80 border-white/[0.06] text-white'}`}>
+        <div className={`backdrop-blur-xl border rounded-full px-6 py-2 flex items-center gap-2 transition-colors shadow-lg bg-transparent ${isLight ? 'border-black/10 text-black' : ' border-white/[0.06] text-white'}`}>
           <span className={`text-xs font-semibold tracking-wider ${isLight ? 'text-gray-500' : 'text-gray-400'}`}>Pixels Placed :</span>
           <span className={`font-mono text-md font-semibold ${isLight ? 'text-green-800' : 'text-celo-yellow'}`}>
             {pixels.length.toLocaleString()}
