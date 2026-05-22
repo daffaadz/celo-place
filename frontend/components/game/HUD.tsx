@@ -9,7 +9,6 @@ import { StreakDisplay, EconomyStats } from "./EconomyStats";
 import { useEffect, useState } from "react";
 import { SpinnerGap, Wallet } from "@phosphor-icons/react";
 import { MissionBoard } from "./MissionBoard";
-import { RewardClaimPanel } from "./RewardClaimPanel";
 
 interface HUDProps {
   selectedColor: string;
@@ -56,6 +55,7 @@ export default function HUD({ selectedColor, onSelectColor, onSearchLocation, ma
         {/* Branding / Info Box */}
         <div className={`backdrop-blur-xl border rounded-2xl p-3 flex flex-col gap-1 pointer-events-auto transition-colors shadow-md ${isLight ? 'bg-white/90 border-black/20' : 'bg-black/80 border-white/[0.15]'}`}>
           <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.png" alt="Logo" className="h-6 w-auto drop-shadow-md" />
             <h1 className={`text-lg font-black drop-shadow-[0_0_0.65px_rgba(0,0,0,1)] ${isLight ? 'text-black' : 'text-white'}`}>
               Celo<span className="text-celo-yellow drop-shadow-[0_0_0.65px_rgba(0,0,0,1)]">Place</span>

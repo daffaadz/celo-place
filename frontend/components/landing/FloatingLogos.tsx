@@ -87,6 +87,7 @@ export default function FloatingLogos() {
             animationDuration: `${logo.duration}s`,
           }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.png"
             alt=""
