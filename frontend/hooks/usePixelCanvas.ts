@@ -12,9 +12,9 @@ export type PixelData = {
   timestamp: number;
 };
 
-// Approximate block number at contract deployment (Celo Mainnet, ~2026-05-21)
-// Celo produces ~1 block/5s. ~38.2M blocks by deployment date.
-const DEPLOY_FROM_BLOCK = 38_200_000n;
+// Approximate block number at contract deployment (Celo Mainnet, ~2026-05-22)
+// Celo produces ~1 block/5s. Current block is ~67.5M.
+const DEPLOY_FROM_BLOCK = 67_550_000n;
 
 export function usePixelCanvas() {
   const { writeContractAsync, isPending: isWriting } = useWriteContract();
